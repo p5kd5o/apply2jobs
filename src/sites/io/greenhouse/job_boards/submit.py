@@ -10,7 +10,6 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 from models import Job
 from utils import cover_letters
-from . import SITE, SITE_SHORTNAME
 
 LOGGER = logging.getLogger(__name__)
 
