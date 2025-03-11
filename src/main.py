@@ -1,8 +1,6 @@
 import logging
 import os
 import pathlib
-import importlib
-import logging
 import urllib
 import urllib.parse
 
@@ -25,71 +23,64 @@ with open("api-keys/mistral-api-apply4jobs.key", encoding="utf-8") as istream:
 
 LINKEDIN_USERNAME = os.getenv("LINKEDIN_USERNAME")
 LINKEDIN_PASSWORD = os.getenv("LINKEDIN_PASSWORD")
-# with open("api-keys/linkedin-apply4jobs-oauth-token", encoding="utf-8") as istream:
-#     LINKEDIN_OAUTH_TOKEN = istream.read().strip()
+
+SEARCH_KWGS = {
+    "www.linkedin.com": dict(
+        keywords="software engineer",
+        job_type="F",
+        remote="2",
+        location_name="United States",
+        limit=5
+    ),
+}
+SEARCH_CLIENTS = {
+    "www.linkedin.com": linkedin_api.Linkedin(
+        LINKEDIN_USERNAME, LINKEDIN_PASSWORD
+    ),
+}
+
 
 
 def main():
     resume_md = pymupdf4llm.to_markdown(RESUME_PDF)
 
-    webdriver_options = selenium.webdriver.FirefoxOptions() 
+    webdriver_options = selenium.webdriver.FirefoxOptions()
     # webdriver_options.add_argument("-headless")
     webdriver = selenium.webdriver.Firefox(options=webdriver_options)
 
     mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
-    linkedin_client = linkedin_api.Linkedin(LINKEDIN_USERNAME, LINKEDIN_PASSWORD)
-    job_results = linkedin_client.search_jobs(keywords="software engineer", job_type="F", remote="2", location_name="United States", limit=5)
-    for job_result in job_results:
-        job = linkedin_client.get_job(job_result["entityUrn"].split(':')[-1])
-        job_title = job["title"]
-        job_company_name = job["companyDetails"]["com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany"]["companyResolutionResult"]["name"]
-        job_description = job["description"]["text"]
-        match job["applyMethod"]:
-            case {"com.linkedin.voyager.jobs.ComplexOnsiteApply": {
-                    "companyApplyUrl": job_apply_url
-            }}:
-                pass
-            case {"com.linkedin.voyager.jobs.OffsiteApply": {
-                    "companyApplyUrl": job_apply_url
-            }}:
-                pass
-            case _:
-                logging.warning(
-                    "No company apply URL: %s: %s",
-                    job_company_name, job_title
-                )
-                continue
+    for site, search_func in sites.SEARCH_SUPPORTED.items():
         try:
-            hostname = urllib.parse.urlparse(job_apply_url).hostname
-            hostname_rev = ".".join(hostname.split(".")[::-1])
-            apply_module = importlib.import_module(
-                f".{hostname_rev.replace('-', '_')}.apply",
-                package=sites.__package__
-            )
-        except ModuleNotFoundError:
-            logging.warning(
-                "No support for site: %s",
-                hostname
-            )
-            continue
+            for job in search_func(SEARCH_CLIENTS[site], **SEARCH_KWGS[site]):
+                try:
+                    hostname = urllib.parse.urlparse(job.apply_url).hostname
+                    submit_func = sites.SUBMIT_SUPPORTED.get(
+                        hostname.replace("-", "_")
+                    )
+                    if submit_func is None:
+                        logging.warning(
+                            "No support for site: %s",
+                            hostname
+                        )
+                    else:
+                        logging.info(
+                            "Applying to job: %s: %s: %s",
+                            job.company_name, job.title, job.apply_url
+                        )
+                        submit_func(
+                            job,
+                            resume_md,
+                            RESUME_PDF,
+                            COVER_LETTER_DIR,
+                            webdriver,
+                            mistral_client
+                        )
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
-        logging.info(
-            "Applying to job: %s: %s: %s",
-            job_company_name, job_title, job_apply_url
-        )
-        getattr(apply_module, "run")(
-            job_company_name,
-            job_title,
-            job_description,
-            job_apply_url,
-            resume_md,
-            RESUME_PDF,
-            COVER_LETTER_DIR,
-            webdriver,
-            mistral_client
-        )
-            
-    webdriver.close()
+    # webdriver.close()
 
 
 if __name__ == "__main__":

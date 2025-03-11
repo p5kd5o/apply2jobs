@@ -8,33 +8,32 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from models import Job
 from utils import cover_letters
+from . import SITE, SITE_SHORTNAME
 
 LOGGER = logging.getLogger(__name__)
 
 
 def run(
-        job_company_name: str,
-        job_title: str,
-        job_description: str,
-        job_apply_url: str,
+        job: Job,
         resume_md: str,
         resume_path: str,
         cover_letter_dir: str,
         webdriver: WebDriver,
         mistral_client: mistralai.Mistral
 ) -> None:
-    resp = requests.get(job_apply_url)
+    resp = requests.get(job.apply_url, timeout=10)
     soup = bs4.BeautifulSoup(resp.text)
     application_form = soup.find("form", attrs={"id": "application-form"})
 
-    webdriver.get(job_apply_url)
+    webdriver.get(job.apply_url)
 
     cover_letter_path = str(
-        cover_letter_dir / f"{job_company_name.replace(".", "")} - {job_title}.pdf"
+        cover_letter_dir / f"{job.company_name.replace(".", "")} - {job.title}.pdf"
     )
     cover_letter_md = cover_letters.generate_cover_letter(
-        mistral_client, job_description, resume_md
+        mistral_client, job.description, resume_md
     )
     cover_letters.save_cover_letter(cover_letter_md, cover_letter_path)
 
@@ -87,19 +86,19 @@ def run(
                 )
                 match question_label.contents[0].casefold():
                     case "location" | "city" | "location (city)":
-                        question_input_element.send_keys(f"Ashland, Oregon, United States")
+                        question_input_element.send_keys("Ashland, Oregon, United States")
                         time.sleep(0.33)
                         question_input_element.send_keys(Keys.RETURN)
                     case value if "authorized to work" in value:
-                        question_input_element.send_keys(f"Yes")
+                        question_input_element.send_keys("Yes")
                         time.sleep(0.33)
                         question_input_element.send_keys(Keys.RETURN)
                     case value if "sponsorship" in value:
-                        question_input_element.send_keys(f"No")
+                        question_input_element.send_keys("No")
                         time.sleep(0.33)
                         question_input_element.send_keys(Keys.RETURN)
                     case value if "agree" in value:
-                        question_input_element.send_keys(f"I agree")
+                        question_input_element.send_keys("I agree")
                         time.sleep(0.33)
                         question_input_element.send_keys(Keys.RETURN)
             elif "file-upload" in attr_class:
@@ -138,27 +137,27 @@ def run(
         )
         match question_label.contents[0].casefold():
             case value if "gender identity" in value:
-                question_input_element.send_keys(f"Non-binary")
+                question_input_element.send_keys("Non-binary")
                 time.sleep(0.33)
                 question_input_element.send_keys(Keys.RETURN)
             case value if "transgender experience" in value:
-                question_input_element.send_keys(f"No")
+                question_input_element.send_keys("No")
                 time.sleep(0.33)
                 question_input_element.send_keys(Keys.RETURN)
             case value if "sexual orientation" in value:
-                question_input_element.send_keys(f"Heterosexual")
+                question_input_element.send_keys("Heterosexual")
                 time.sleep(0.33)
                 question_input_element.send_keys(Keys.RETURN)
             case value if "disability" in value:
-                question_input_element.send_keys(f"I don't wish to answer")
+                question_input_element.send_keys("I don't wish to answer")
                 time.sleep(0.33)
                 question_input_element.send_keys(Keys.RETURN)
             case value if "veteran" in value:
-                question_input_element.send_keys(f"No")
+                question_input_element.send_keys("No")
                 time.sleep(0.33)
                 question_input_element.send_keys(Keys.RETURN)
             case value if "ethnicities" in value:
-                question_input_element.send_keys(f"White")
+                question_input_element.send_keys("White")
                 time.sleep(0.33)
                 question_input_element.send_keys(Keys.RETURN)
 
