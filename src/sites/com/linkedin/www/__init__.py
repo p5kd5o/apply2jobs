@@ -1,2 +1,4 @@
+from sites import get_package_site
+
 SITE_SHORTNAME = "LinkedIn"
-SITE = ".".join(locals().get("__package__").split(".")[-3:][::-1])
+SITE = get_package_site(__package__)

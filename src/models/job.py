@@ -1,43 +1,30 @@
+from copy import deepcopy
+from typing import Annotated
+
+from pydantic import AfterValidator, BaseModel, HttpUrl
+
 from models.job_source import JobSource
 
 
-class Job:
-    __company_name: str
-    __title: str
-    __description: str
-    __apply_url: str
-    __source: JobSource
+class Job(BaseModel, extra="forbid"):
+    company_name: str
+    title: str
+    description: str
+    apply_url: Annotated[HttpUrl, AfterValidator(str)]
+    source: JobSource
 
     def __init__(
             self,
             company_name: str,
             title: str,
             description: str,
-            apply_url: str,
+            apply_url: HttpUrl,
             source: JobSource
     ):
-        self.__company_name = company_name
-        self.__title = title
-        self.__description = description
-        self.__apply_url = apply_url
-        self.__source = source.copy()
-
-    @property
-    def company_name(self) -> str:
-        return self.__company_name
-
-    @property
-    def title(self) -> str:
-        return self.__title
-
-    @property
-    def description(self) -> str:
-        return self.__description
-
-    @property
-    def apply_url(self) -> str:
-        return self.__apply_url
-
-    @property
-    def source(self) -> JobSource:
-        return self.__source
+        super().__init__(
+            company_name=company_name,
+            title=title,
+            description=description,
+            apply_url=apply_url,
+            source=deepcopy(source)
+        )
