@@ -7,10 +7,11 @@ from . import ensure_enum
 
 
 class SearchElementCredentialValueType(Enum):
-   PLAINTEXT = 1
-   ENV = 2
+    PLAINTEXT = 1
+    ENV = 2
 
 
+# pylint: disable=too-few-public-methods
 class SearchElementCredentialConfig(BaseModel, extra="forbid"):
     value_type: Annotated[
         SearchElementCredentialValueType,

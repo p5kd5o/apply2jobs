@@ -10,4 +10,3 @@ API = Api(
 )
 
 APP.run(debug=True)
-

@@ -28,7 +28,7 @@ def load_supported_modules(path, package, parent=None):
             load_supported_modules(
                 module.__path__, module.__package__, parent=module
             )
-        elif module_info.name in __MODULE_SUPPORT_MAPPING.keys():
+        elif module_info.name in __MODULE_SUPPORT_MAPPING:
             try:
                 __MODULE_SUPPORT_MAPPING[module_info.name][parent.SITE] = (
                     getattr(module, __MODULE_RUN_MEMBER_NAME)

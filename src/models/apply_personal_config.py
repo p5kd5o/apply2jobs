@@ -11,6 +11,7 @@ from .apply_personal_location_config import (
 )
 
 
+# pylint: disable=too-few-public-methods
 class ApplyPersonalConfig(BaseModel, extra="forbid"):
     first_name: str
     last_name: str

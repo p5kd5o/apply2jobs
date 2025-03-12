@@ -29,7 +29,8 @@ def run(
     webdriver.get(job.apply_url)
 
     cover_letter_path = str(
-        cover_letter_dir / f"{job.company_name.replace(".", "")} - {job.title}.pdf"
+        cover_letter_dir /
+        f"{job.company_name.replace(".", "")} - {job.title}.pdf"
     )
     cover_letter_md = cover_letters.generate_cover_letter(
         mistral_client, job.description, resume_md
@@ -68,8 +69,10 @@ def run(
                         question_input_element.send_keys("pdeyoreo@gmail.com")
                     case "phone" | "phone number":
                         question_input_element.send_keys("925-487-6155")
-                    case "linkedin"|"linkedin profile":
-                        question_input_element.send_keys("https://linkedin.com/in/patrickdeyoreo")
+                    case "linkedin" | "linkedin profile":
+                        question_input_element.send_keys(
+                            "https://linkedin.com/in/patrickdeyoreo"
+                        )
                     case "how did you hear about this job?":
                         question_input_element.send_keys("LinkedIn")
             elif "select" in attr_class:
@@ -85,7 +88,9 @@ def run(
                 )
                 match question_label.contents[0].casefold():
                     case "location" | "city" | "location (city)":
-                        question_input_element.send_keys("Ashland, Oregon, United States")
+                        question_input_element.send_keys(
+                            "Ashland, Oregon, United States"
+                        )
                         time.sleep(0.33)
                         question_input_element.send_keys(Keys.RETURN)
                     case value if "authorized to work" in value:

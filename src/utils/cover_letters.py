@@ -16,7 +16,7 @@ def generate_cover_letter(
         mistral_client: mistralai.Mistral,
         job_description: str,
         resume_md: str,
-        mistral_model: str ="mistral-large-latest"
+        mistral_model: str = "mistral-large-latest"
 ) -> str:
     chat_response = mistral_client.chat.complete(
         model=mistral_model,

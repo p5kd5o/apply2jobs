@@ -51,13 +51,15 @@ def main():
         search_client_kwgs = {}
         for name, credential in site.auth.credentials:
             print(credential.value_type)
-            if (credential.value_type ==
+            if (
+                credential.value_type ==
                 models.search_element_auth_credential_config
                 .SearchElementCredentialValueType
                 .PLAINTEXT
             ):
                 search_client_kwgs[name] = credential.value
-            if (credential.value_type ==
+            if (
+                credential.value_type ==
                 models.search_element_auth_credential_config
                 .SearchElementCredentialValueType
                 .ENV
@@ -79,11 +81,14 @@ def main():
             search_func = sites.SEARCH_SUPPORTED[site]
             for job_search in searches:
                 try:
-                    search_kwgs = job_search.to_dict()
-                    for job in search_func(search_clients[site], **search_kwgs):
+                    for job in search_func(
+                        search_clients[site], **job_search.to_dict()
+                    ):
                         logging.debug(">>> Job:\n\n%s", job)
                         try:
-                            hostname = urllib.parse.urlparse(job.apply_url).hostname
+                            hostname = urllib.parse.urlparse(
+                                job.apply_url
+                            ).hostname
                             submit_func = sites.SUBMIT_SUPPORTED.get(hostname)
                             if submit_func is None:
                                 logging.warning(

@@ -31,6 +31,7 @@ class SearchElementJobRemote(str, Enum):
     HYBRID = "3"
 
 
+# pylint: disable=too-few-public-methods
 class SearchElementJobConfig(BaseModel, extra="forbid"):
     keywords: Optional[str]
     experience: Optional[list[Annotated[
@@ -39,11 +40,11 @@ class SearchElementJobConfig(BaseModel, extra="forbid"):
     ]]]
     job_type: Optional[list[Annotated[
         SearchElementJobType,
-        BeforeValidator(ensure_enum(SearchElementJobType, data_type=list))
+        BeforeValidator(ensure_enum(SearchElementJobType))
     ]]]
     remote: Optional[list[Annotated[
         SearchElementJobRemote,
-        BeforeValidator(ensure_enum(SearchElementJobRemote, data_type=list))
+        BeforeValidator(ensure_enum(SearchElementJobRemote))
     ]]]
     location_name: Optional[str]
     distance: Optional[int] = None

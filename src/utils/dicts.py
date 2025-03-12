@@ -3,10 +3,10 @@ from typing import Any, Callable
 
 
 def find(
-        context: dict[Any, Any],
-        key: Any,
-        compare_func: Callable[[Any, Any], bool] = None
-    ) -> Any:
+    context: dict[Any, Any],
+    key: Any,
+    compare_func: Callable[[Any, Any], bool] = None
+) -> Any:
     if compare_func is None:
         compare_func = operator.eq
     queue = list(context.items())
