@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 
 from pydantic import BaseModel, BeforeValidator, Field
 
-from . import ensure_enum
+from utils.models import ensure_enum
 
 
 class SearchElementJobExperience(str, Enum):

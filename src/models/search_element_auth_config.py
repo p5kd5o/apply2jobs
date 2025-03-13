@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator
 
-from . import ensure_enum
+from utils.models import ensure_enum
 from .search_element_auth_scheme_basic_config import (
     SearchElementAuthSchemeBasicConfig
 )

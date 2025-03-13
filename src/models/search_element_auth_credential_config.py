@@ -3,18 +3,18 @@ from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator
 
-from . import ensure_enum
+from utils.models import ensure_enum
 
 
-class SearchElementCredentialValueType(Enum):
+class SearchElementAuthCredentialValueType(Enum):
     PLAINTEXT = 1
     ENV = 2
 
 
 # pylint: disable=too-few-public-methods
-class SearchElementCredentialConfig(BaseModel, extra="forbid"):
+class SearchElementAuthCredentialConfig(BaseModel, extra="forbid"):
     value_type: Annotated[
-        SearchElementCredentialValueType,
-        BeforeValidator(ensure_enum(SearchElementCredentialValueType))
-    ] = SearchElementCredentialValueType.PLAINTEXT
+        SearchElementAuthCredentialValueType,
+        BeforeValidator(ensure_enum(SearchElementAuthCredentialValueType))
+    ] = SearchElementAuthCredentialValueType.PLAINTEXT
     value: str

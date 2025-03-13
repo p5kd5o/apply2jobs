@@ -9,9 +9,11 @@ LOGGER = getLogger(__name__)
 
 SEARCH_SUPPORTED: dict[str, Callable[..., Iterable[models.job.Job]]] = {}
 SUBMIT_SUPPORTED: dict[str, Callable[..., Iterable[models.job.Job]]] = {}
+SITE_CLIENT_TYPE: dict[str, type] = {}
 
-__MODULE_RUN_MEMBER_NAME: str = "run"
-__MODULE_SUPPORT_MAPPING: dict[str, dict] = {
+__SITE_MODULE_CLIENT_TYPE_ATTR__: str = "CLIENT_TYPE"
+__SITE_MODULE_RUN_MEMBER_NAME__: str = "run"
+__SITE_MODULE_SUPPORT_MAPPING__: dict[str, dict] = {
     "search": SEARCH_SUPPORTED,
     "submit": SUBMIT_SUPPORTED,
 }
@@ -23,23 +25,34 @@ def get_package_site(package: str):
 
 def load_supported_modules(path, package, parent=None):
     for module_info in iter_modules(path):
-        module = import_module(f"{package}.{module_info.name}")
+        module_name = module_info.name
+        module = import_module(f"{package}.{module_name}")
         if module_info.ispkg:
+            if hasattr(module, __SITE_MODULE_CLIENT_TYPE_ATTR__):
+                SITE_CLIENT_TYPE[module.SITE] = getattr(
+                    module, __SITE_MODULE_CLIENT_TYPE_ATTR__
+                )
+                LOGGER.info(
+                    "Loaded client type for site module: %s: %s",
+                    module.__package__,
+                    SITE_CLIENT_TYPE[module.SITE]
+                )
             load_supported_modules(
                 module.__path__, module.__package__, parent=module
             )
-        elif module_info.name in __MODULE_SUPPORT_MAPPING:
-            try:
-                __MODULE_SUPPORT_MAPPING[module_info.name][parent.SITE] = (
-                    getattr(module, __MODULE_RUN_MEMBER_NAME)
+        elif module_name in __SITE_MODULE_SUPPORT_MAPPING__:
+            if hasattr(module, __SITE_MODULE_RUN_MEMBER_NAME__):
+                __SITE_MODULE_SUPPORT_MAPPING__[module_name][parent.SITE] = (
+                    getattr(module, __SITE_MODULE_RUN_MEMBER_NAME__)
                 )
                 LOGGER.info(
-                    "Loaded support module: %s: %s",
-                    module.__package__, module_info.name
+                    "Loaded support module: %s",
+                    module.__package__
                 )
-            except AttributeError:
+            else:
                 LOGGER.warning(
-                    "Module missing ``run'': %s",
+                    "Module missing member ``%s'': %s",
+                    __SITE_MODULE_RUN_MEMBER_NAME__,
                     module.__package__
                 )
 
