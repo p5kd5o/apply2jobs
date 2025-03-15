@@ -11,8 +11,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from models import Job, ApplyPersonalConfig
+from models import ApplyPersonalConfig, Job
 from sites.base import BaseSubmit
+from sites.questions import get_question_response
 from utils import cover_letters
 
 LOGGER = logging.getLogger(__name__)
@@ -47,7 +48,13 @@ class Submit(BaseSubmit):
         resume_path = pathlib.Path(resume_path)
         cover_letter_dir = pathlib.Path(cover_letter_dir)
 
-        resume_md = pymupdf4llm.to_markdown(resume_path)
+        LOGGER.info(
+            "Converting resume to Markdown: %s",
+            resume_path
+        )
+        resume_md = pymupdf4llm.to_markdown(
+            resume_path, show_progress=False
+        )
 
         resp = requests.get(job.apply_url, timeout=10)
         soup = bs4.BeautifulSoup(resp.text, features="lxml")
@@ -66,15 +73,36 @@ class Submit(BaseSubmit):
 
         for application_questions in application_form.find_all(
                 "div",
-                attrs={"class": "application--questions"},
-                recursive=False
+                attrs={"class": "application--questions"}
         ):
-            for question in application_questions.children:
-                question_div = question.div
-                if question_div is None or "class" not in question_div.attrs:
-                    continue
+            for question_div in application_questions.find_all(
+                "div",
+                recursive=False
+            ):
+                # question_div = question.div
+                # if question_div is None or "class" not in question_div.attrs:
+                #     continue
                 attr_class = question_div.attrs["class"]
-                if "text-input-wrapper" in attr_class:
+                if "file-upload" in attr_class:
+                    question_input = question_div.find("input")
+                    question_label = question_div.find(
+                        "div",
+                        attrs={"class": "label"},
+                        recursive=False
+                    )
+                    question_input_element = self.webdriver.find_element(
+                        by=By.ID, value=question_input.attrs["id"]
+                    )
+                    question_input_element.send_keys(
+                        get_question_response(
+                            question=question_label.contents[0],
+                            personal=personal,
+                            job_source=job.source,
+                            resume_path=resume_path,
+                            cover_letter_path=cover_letter_path
+                        )
+                    )
+                elif "text-input-wrapper" in attr_class:
                     question_input_wrapper = question_div.find(
                         "div",
                         attrs={"class": "input-wrapper"},
@@ -85,35 +113,15 @@ class Submit(BaseSubmit):
                     question_input_element = self.webdriver.find_element(
                         by=By.ID, value=question_input.attrs["id"]
                     )
-                    match question_label.contents[0].casefold():
-                        case "first name":
-                            question_input_element.send_keys(
-                                personal.first_name
-                            )
-                        case "last name":
-                            question_input_element.send_keys(
-                                personal.last_name
-                            )
-                        case "full name" | "name":
-                            question_input_element.send_keys(
-                                f"{personal.first_name} {personal.last_name}"
-                            )
-                        case "email" | "email address":
-                            question_input_element.send_keys(
-                                personal.contact.email_address
-                            )
-                        case "phone" | "phone number":
-                            question_input_element.send_keys(
-                                personal.contact.phone_number
-                            )
-                        case "linkedin" | "linkedin profile":
-                            question_input_element.send_keys(
-                                personal.social.linkedin
-                            )
-                        case "how did you hear about this job?":
-                            question_input_element.send_keys(
-                                job.source.shortname
-                            )
+                    question_input_element.send_keys(
+                        get_question_response(
+                            question=question_label.contents[0],
+                            personal=personal,
+                            job_source=job.source,
+                            resume_path=resume_path,
+                            cover_letter_path=cover_letter_path
+                        )
+                    )
                 elif "select" in attr_class:
                     question_select_container = question_div.find(
                         "div",
@@ -125,52 +133,17 @@ class Submit(BaseSubmit):
                     question_input_element = self.webdriver.find_element(
                         by=By.ID, value=question_input.attrs["id"]
                     )
-                    match question_label.contents[0].casefold():
-                        case "location" | "city" | "location (city)":
-                            question_input_element.send_keys(
-                                personal.location.to_str(
-                                    street_address=False, zip_code=False, country=False
-                                )
-                            )
-                            time.sleep(0.33)
-                            question_input_element.send_keys(Keys.RETURN)
-                        case value if "authorized to work" in value:
-                            question_input_element.send_keys(
-                                "Yes" if personal.demographic.authorized_to_work
-                                else "No"
-                            )
-                            time.sleep(0.33)
-                            question_input_element.send_keys(Keys.RETURN)
-                        case value if "sponsorship" in value:
-                            question_input_element.send_keys(
-                                "Yes" if personal.demographic.immigration_sponsorship
-                                else "No"
-                            )
-                            time.sleep(0.33)
-                            question_input_element.send_keys(Keys.RETURN)
-                        case value if "agree" in value:
-                            question_input_element.send_keys("I agree")
-                            time.sleep(0.33)
-                            question_input_element.send_keys(Keys.RETURN)
-                elif "file-upload" in attr_class:
-                    question_input = question_div.find("input")
-                    question_label = question_div.find(
-                        "div",
-                        attrs={"class": "label"},
-                        recursive=False
+                    question_input_element.send_keys(
+                        get_question_response(
+                            question=question_label.contents[0],
+                            personal=personal,
+                            job_source=job.source,
+                            resume_path=resume_path,
+                            cover_letter_path=cover_letter_path
+                        )
                     )
-                    question_input_element = self.webdriver.find_element(
-                        by=By.ID, value=question_input.attrs["id"]
-                    )
-                    match question_label.contents[0].casefold().replace(" ", ""):
-                        case "resume" | "cv" | "resume/cv":
-                            question_input_element.send_keys(
-                                str(resume_path)
-                            )
-                        case "coverletter":
-                            question_input_element.send_keys(
-                                str(cover_letter_path)
-                            )
+                    time.sleep(0.25)
+                    question_input_element.send_keys(Keys.RETURN)
 
         for demographic_section in application_form.find_all(
             "div",
@@ -191,45 +164,17 @@ class Submit(BaseSubmit):
                 question_input_element = self.webdriver.find_element(
                     by=By.ID, value=question_input.attrs["id"]
                 )
-                match question_label.contents[0].casefold():
-                    case value if "gender identity" in value:
-                        question_input_element.send_keys(
-                            personal.demographic.gender
-                        )
-                        time.sleep(0.33)
-                        question_input_element.send_keys(Keys.RETURN)
-                    case value if "transgender experience" in value:
-                        question_input_element.send_keys(
-                            "Yes" if personal.demographic.transgender
-                            else "No"
-                        )
-                        time.sleep(0.33)
-                        question_input_element.send_keys(Keys.RETURN)
-                    case value if "sexual orientation" in value:
-                        question_input_element.send_keys(
-                            personal.demographic.sexual_orientation
-                        )
-                        time.sleep(0.33)
-                        question_input_element.send_keys(Keys.RETURN)
-                    case value if "disability" in value:
-                        question_input_element.send_keys(
-                            "Yes" if personal.demographic.disability
-                            else "No"
-                        )
-                        time.sleep(0.33)
-                        question_input_element.send_keys(Keys.RETURN)
-                    case value if "veteran" in value:
-                        question_input_element.send_keys(
-                            "Yes" if personal.demographic.veteran
-                            else "No"
-                        )
-                        time.sleep(0.33)
-                        question_input_element.send_keys(Keys.RETURN)
-                    case value if "ethnicities" in value:
-                        for race in personal.demographic.races:
-                            question_input_element.send_keys(race)
-                            time.sleep(0.33)
-                            question_input_element.send_keys(Keys.RETURN)
+                question_input_element.send_keys(
+                    get_question_response(
+                        question=question_label.contents[0],
+                        personal=personal,
+                        job_source=job.source,
+                        resume_path=resume_path,
+                        cover_letter_path=cover_letter_path
+                    )
+                )
+                time.sleep(0.25)
+                question_input_element.send_keys(Keys.RETURN)
 
         try:
             gdpr_data_checkbox_input_element = self.webdriver.find_element(

@@ -1,9 +1,7 @@
 from importlib import import_module
 from logging import getLogger
 from pkgutil import iter_modules
-from typing import Any, Callable, Iterable
 
-from models import Job
 from .base import BaseSearch, BaseSubmit
 
 LOGGER = getLogger(__name__)

@@ -9,7 +9,9 @@ class ApplyPersonalLocationConfig(BaseModel, extra="forbid"):
     street_address_line_2: Optional[str] = None
     city: str
     state: str
-    zip_code: Annotated[str, BeforeValidator(str)] = Field(pattern=r"^[0-9]{5}$")
+    zip_code: Annotated[str, BeforeValidator(str)] = Field(
+        pattern=r"^[0-9]{5}$"
+    )
     country: str
 
     def to_str(

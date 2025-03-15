@@ -50,7 +50,9 @@ class Search(BaseSearch):
                 SITE, job_urn, job_company_name, job_title
             )
         try:
-            job_apply_url = utils.dicts.find(job["applyMethod"], "companyApplyUrl")
+            job_apply_url = utils.dicts.find(
+                job["applyMethod"], "companyApplyUrl"
+            )
         except KeyError:
             job_apply_url = ""
             LOGGER.warning(
