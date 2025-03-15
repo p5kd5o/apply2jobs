@@ -1,18 +1,22 @@
 from importlib import import_module
 from logging import getLogger
 from pkgutil import iter_modules
-from typing import Callable, Iterable
+from typing import Any, Callable, Iterable
 
-import models.job
+from models import Job
+from .base import BaseSearch, BaseSubmit
 
 LOGGER = getLogger(__name__)
 
-SEARCH_SUPPORTED: dict[str, Callable[..., Iterable[models.job.Job]]] = {}
-SUBMIT_SUPPORTED: dict[str, Callable[..., Iterable[models.job.Job]]] = {}
+SEARCH_SUPPORTED: dict[str, BaseSearch] = {}
+SUBMIT_SUPPORTED: dict[str, BaseSubmit] = {}
 SITE_CLIENT_TYPE: dict[str, type] = {}
 
 __SITE_MODULE_CLIENT_TYPE_ATTR__: str = "CLIENT_TYPE"
-__SITE_MODULE_RUN_MEMBER_NAME__: str = "run"
+__SITE_MODULE_SUPPORT_CLASS_NAME_MAPPING__: dict[str, str] = {
+    "search": "Search",
+    "submit": "Submit",
+}
 __SITE_MODULE_SUPPORT_MAPPING__: dict[str, dict] = {
     "search": SEARCH_SUPPORTED,
     "submit": SUBMIT_SUPPORTED,
@@ -30,7 +34,8 @@ def load_supported_modules(path, package, parent=None):
         if module_info.ispkg:
             if hasattr(module, __SITE_MODULE_CLIENT_TYPE_ATTR__):
                 SITE_CLIENT_TYPE[module.SITE] = getattr(
-                    module, __SITE_MODULE_CLIENT_TYPE_ATTR__
+                    module,
+                    __SITE_MODULE_CLIENT_TYPE_ATTR__
                 )
                 LOGGER.info(
                     "Loaded client type for site module: %s: %s",
@@ -41,9 +46,15 @@ def load_supported_modules(path, package, parent=None):
                 module.__path__, module.__package__, parent=module
             )
         elif module_name in __SITE_MODULE_SUPPORT_MAPPING__:
-            if hasattr(module, __SITE_MODULE_RUN_MEMBER_NAME__):
+            if hasattr(
+                module,
+                __SITE_MODULE_SUPPORT_CLASS_NAME_MAPPING__[module_name]
+            ):
                 __SITE_MODULE_SUPPORT_MAPPING__[module_name][parent.SITE] = (
-                    getattr(module, __SITE_MODULE_RUN_MEMBER_NAME__)
+                    getattr(
+                        module,
+                        __SITE_MODULE_SUPPORT_CLASS_NAME_MAPPING__[module_name]
+                    )
                 )
                 LOGGER.info(
                     "Loaded support module: %s",
@@ -51,8 +62,8 @@ def load_supported_modules(path, package, parent=None):
                 )
             else:
                 LOGGER.warning(
-                    "Module missing member ``%s'': %s",
-                    __SITE_MODULE_RUN_MEMBER_NAME__,
+                    "Module missing class ``%s'': %s",
+                    __SITE_MODULE_SUPPORT_CLASS_NAME_MAPPING__[module_name],
                     module.__package__
                 )
 

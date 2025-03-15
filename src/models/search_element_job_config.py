@@ -33,22 +33,22 @@ class SearchElementJobRemote(str, Enum):
 
 # pylint: disable=too-few-public-methods
 class SearchElementJobConfig(BaseModel, extra="forbid"):
-    keywords: Optional[str]
+    keywords: Optional[str] = None
     experience: Optional[list[Annotated[
         SearchElementJobExperience,
         BeforeValidator(ensure_enum(SearchElementJobExperience))
-    ]]]
+    ]]] = []
     job_type: Optional[list[Annotated[
         SearchElementJobType,
         BeforeValidator(ensure_enum(SearchElementJobType))
-    ]]]
+    ]]] = []
     remote: Optional[list[Annotated[
         SearchElementJobRemote,
         BeforeValidator(ensure_enum(SearchElementJobRemote))
-    ]]]
-    location_name: Optional[str]
+    ]]] = []
+    location_name: Optional[str] = None
     distance: Optional[int] = None
-    limit: Optional[Annotated[int, Field(ge=-1)]]
+    limit: Optional[Annotated[int, Field(ge=-1)]] = -1
 
     def to_dict(self):
         return {

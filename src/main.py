@@ -5,7 +5,6 @@ import urllib
 import urllib.parse
 
 import mistralai
-import pymupdf4llm
 import selenium.webdriver
 
 import config
@@ -58,45 +57,49 @@ def main():
     logging.basicConfig()
 
     main_config = config.load_config_file(CONFIG_FILE)
+
     search_site_jobs_config = {
         site.host: site.jobs
         for site in main_config.search.sites
     }
     search_clients = _init_search_clients(main_config.search.sites)
-    resume_md = pymupdf4llm.to_markdown(RESUME_PDF)
 
     webdriver_options = selenium.webdriver.FirefoxOptions()
     # webdriver_options.add_argument("-headless")
     webdriver = selenium.webdriver.Firefox(options=webdriver_options)
 
+    if main_config.apply.confirm_before_submit:
+        pre_submit_hook = [lambda: input("<ENTER> to Continue...")]
+    else:
+        pre_submit_hook = None
+
     mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
     for site, job_searches in search_site_jobs_config.items():
         try:
-            search_func = sites.SEARCH_SUPPORTED[site]
+            search_func = sites.SEARCH_SUPPORTED[site](
+                search_clients[site]
+            ).main
             for job_search in job_searches:
                 try:
-                    for job in search_func(
-                        search_clients[site], **job_search.to_dict()
-                    ):
+                    for job in search_func(**job_search.to_dict()):
                         logging.debug(">>> Job:\n\n%s", job)
                         try:
                             hostname = urllib.parse.urlparse(
                                 job.apply_url
                             ).hostname
-                            submit_func = sites.SUBMIT_SUPPORTED[hostname]
+                            submit_func = sites.SUBMIT_SUPPORTED[hostname](
+                                webdriver, mistral_client,
+                                pre_submit_hook=pre_submit_hook
+                            ).main
                             logging.info(
                                 "Applying to job: %s: %s: %s",
                                 job.company_name, job.title, job.apply_url
                             )
-                            if main_config.apply.confirm_before_submit:
-                                input("<ENTER> to Continue...")
                             submit_func(
                                 job,
-                                resume_md,
+                                main_config.apply.personal,
                                 RESUME_PDF,
-                                COVER_LETTER_DIR,
-                                webdriver,
-                                mistral_client
+                                COVER_LETTER_DIR
                             )
                         except KeyError:
                             logging.warning(

@@ -12,20 +12,4 @@ class Job(BaseModel, extra="forbid"):
     title: str
     description: str
     apply_url: Annotated[HttpUrl, AfterValidator(str)]
-    source: JobSource
-
-    def __init__(
-            self,
-            company_name: str,
-            title: str,
-            description: str,
-            apply_url: HttpUrl,
-            source: JobSource
-    ):
-        super().__init__(
-            company_name=company_name,
-            title=title,
-            description=description,
-            apply_url=apply_url,
-            source=deepcopy(source)
-        )
+    source: Annotated[JobSource, AfterValidator(deepcopy)]

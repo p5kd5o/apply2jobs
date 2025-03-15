@@ -3,6 +3,7 @@ from .apply_personal_config import ApplyPersonalConfig
 from .apply_personal_contact_config import ApplyPersonalContactConfig
 from .apply_personal_demographic_config import ApplyPersonalDemographicConfig
 from .apply_personal_location_config import ApplyPersonalLocationConfig
+from .apply_personal_social_config import ApplyPersonalSocialConfig
 from .config import Config
 from .job_source import JobSource
 from .job import Job

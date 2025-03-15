@@ -16,6 +16,7 @@ class ApplyPersonalDemographicConfig(BaseModel, extra="forbid"):
     transgender: bool
     citizen: bool
     immigration_sponsorship: bool
+    authorized_to_work: bool
     races: list[str]
     ethnicity: str
     disability: bool
