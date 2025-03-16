@@ -53,9 +53,9 @@ class SearchElementJobConfig(BaseModel, extra="forbid"):
     def to_dict(self):
         return {
             "keywords": self.keywords,
-            "experience": list(map(lambda x: x.value, self.experience)),
-            "job_type": list(map(lambda x: x.value, self.job_type)),
-            "remote": list(map(lambda x: x.value, self.remote)),
+            "experience": list(x.value for x in self.experience),
+            "job_type": list(x.value for x in self.job_type),
+            "remote": list(x.value for x in self.remote),
             "location_name": self.location_name,
             "distance": self.distance,
             "limit": self.limit

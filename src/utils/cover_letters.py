@@ -49,5 +49,4 @@ def generate_cover_letter(
             },
         ]
     )
-    logging.debug("%s", chat_response.choices[0].message.content)
     return chat_response.choices[0].message.content
