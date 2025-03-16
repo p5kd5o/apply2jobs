@@ -24,3 +24,7 @@ class ApplyPersonalConfig(BaseModel, extra="forbid"):
     location: ApplyPersonalLocationConfig
     demographic: ApplyPersonalDemographicConfig
     social: Optional[ApplyPersonalSocialConfig] = ApplyPersonalSocialConfig()
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"

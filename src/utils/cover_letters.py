@@ -1,21 +1,14 @@
 import logging
 
-import markdown_pdf
 import mistralai
 
 LOGGER = logging.getLogger(__name__)
 
 
-def save_cover_letter(content: str, out_path: str) -> None:
-    pdf = markdown_pdf.MarkdownPdf()
-    pdf.add_section(markdown_pdf.Section(content))
-    pdf.save(out_path)
-
-
 def generate_cover_letter(
         mistral_client: mistralai.Mistral,
         job_description: str,
-        resume_md: str,
+        resume_content: str,
         mistral_model: str = "mistral-large-latest"
 ) -> str:
     chat_response = mistral_client.chat.complete(
@@ -48,7 +41,7 @@ def generate_cover_letter(
             },
             {
                 "role": "system",
-                "content": f"The Applicant's Resume:\n\n{resume_md}"
+                "content": f"The Applicant's Resume:\n\n{resume_content}"
             },
             {
                 "role": "user",

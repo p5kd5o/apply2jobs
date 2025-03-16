@@ -1,7 +1,7 @@
 import logging
 import pathlib
 import time
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 import bs4
 import mistralai
@@ -14,7 +14,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from models import ApplyPersonalConfig, Job
 from sites.base import BaseSubmit
 from sites.questions import get_question_response
-from utils import cover_letters
+from utils import cover_letters, pdf
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,14 +29,14 @@ class Submit(BaseSubmit):
         self,
         webdriver: WebDriver,
         mistral_client: mistralai.Mistral,
-        pre_submit_hook: list[Callable[[], Any]] = None
+        pre_submit_hook: Iterable[Callable[[], Any]] = None
     ):
         self.webdriver = webdriver
         self.mistral_client = mistral_client
         if pre_submit_hook is None:
             self.pre_submit_hook = []
         else:
-            self.pre_submit_hook = pre_submit_hook.copy()
+            self.pre_submit_hook = list(pre_submit_hook)
 
     def main(
         self,
@@ -69,91 +69,52 @@ class Submit(BaseSubmit):
         cover_letter_md = cover_letters.generate_cover_letter(
             self.mistral_client, job.description, resume_md
         )
-        cover_letters.save_cover_letter(cover_letter_md, cover_letter_path)
+        pdf.md_to_pdf(cover_letter_md, cover_letter_path)
 
-        for application_questions in application_form.find_all(
-                "div",
-                attrs={"class": "application--questions"}
-        ):
-            for question_div in application_questions.find_all(
-                "div",
-                recursive=False
-            ):
-                # question_div = question.div
-                # if question_div is None or "class" not in question_div.attrs:
-                #     continue
-                attr_class = question_div.attrs["class"]
-                if "file-upload" in attr_class:
-                    question_input = question_div.find("input")
-                    question_label = question_div.find(
-                        "div",
-                        attrs={"class": "label"},
-                        recursive=False
-                    )
-                    question_input_element = self.webdriver.find_element(
-                        by=By.ID, value=question_input.attrs["id"]
-                    )
-                    question_input_element.send_keys(
-                        get_question_response(
-                            question=question_label.contents[0],
-                            personal=personal,
-                            job_source=job.source,
-                            resume_path=resume_path,
-                            cover_letter_path=cover_letter_path
-                        )
-                    )
-                elif "text-input-wrapper" in attr_class:
-                    question_input_wrapper = question_div.find(
-                        "div",
-                        attrs={"class": "input-wrapper"},
-                        recursive=False
-                    )
-                    question_input = question_input_wrapper.find("input")
-                    question_label = question_input_wrapper.label
-                    question_input_element = self.webdriver.find_element(
-                        by=By.ID, value=question_input.attrs["id"]
-                    )
-                    question_input_element.send_keys(
-                        get_question_response(
-                            question=question_label.contents[0],
-                            personal=personal,
-                            job_source=job.source,
-                            resume_path=resume_path,
-                            cover_letter_path=cover_letter_path
-                        )
-                    )
-                elif "select" in attr_class:
-                    question_select_container = question_div.find(
-                        "div",
-                        attrs={"class": "select__container"},
-                        recursive=False
-                    )
-                    question_input = question_select_container.find("input")
-                    question_label = question_select_container.label
-                    question_input_element = self.webdriver.find_element(
-                        by=By.ID, value=question_input.attrs["id"]
-                    )
-                    question_input_element.send_keys(
-                        get_question_response(
-                            question=question_label.contents[0],
-                            personal=personal,
-                            job_source=job.source,
-                            resume_path=resume_path,
-                            cover_letter_path=cover_letter_path
-                        )
-                    )
-                    time.sleep(0.25)
-                    question_input_element.send_keys(Keys.RETURN)
-
-        for demographic_section in application_form.find_all(
+        for question_div in application_form.find_all(
             "div",
-            attrs={"id": "demographic-section"}
+            attrs={"class": ["file-upload", "text-input-wrapper", "select"]}
         ):
-            for question_div in demographic_section.find_all(
-                "div",
-                attrs={"class": "select"},
-                recursive=False
-            ):
+            if "file-upload" in question_div.attrs["class"]:
+                question_input = question_div.find("input")
+                question_label = question_div.find(
+                    "div",
+                    attrs={"class": "label"},
+                    recursive=False
+                )
+                question_input_element = self.webdriver.find_element(
+                    by=By.ID, value=question_input.attrs["id"]
+                )
+                question_input_element.send_keys(
+                    get_question_response(
+                        question=question_label.contents[0],
+                        personal=personal,
+                        job_source=job.source,
+                        resume_path=resume_path,
+                        cover_letter_path=cover_letter_path
+                    )
+                )
+            if "text-input-wrapper" in question_div.attrs["class"]:
+                question_input_wrapper = question_div.find(
+                    "div",
+                    attrs={"class": "input-wrapper"},
+                    recursive=False
+                )
+                question_input = question_input_wrapper.find("input")
+                question_label = question_input_wrapper.label
+                question_input_element = self.webdriver.find_element(
+                    by=By.ID, value=question_input.attrs["id"]
+                )
+                question_input_element.send_keys(
+                    get_question_response(
+                        question=question_label.contents[0],
+                        personal=personal,
+                        job_source=job.source,
+                        resume_path=resume_path,
+                        cover_letter_path=cover_letter_path
+                    )
+                )
+            if "select" in question_div.attrs["class"]:
                 question_select_container = question_div.find(
                     "div",
                     attrs={"class": "select__container"},
@@ -173,7 +134,7 @@ class Submit(BaseSubmit):
                         cover_letter_path=cover_letter_path
                     )
                 )
-                time.sleep(0.25)
+                time.sleep(0.3)
                 question_input_element.send_keys(Keys.RETURN)
 
         try:

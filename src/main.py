@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pathlib
@@ -54,7 +55,9 @@ def _init_search_clients(
 
 
 def main():
-    logging.basicConfig()
+    logging.basicConfig(
+        level=getattr(logging, os.getenv("LOG_LEVEL", "WARNING"))
+    )
 
     main_config = config.load_config_file(CONFIG_FILE)
 
@@ -79,42 +82,55 @@ def main():
             search_func = sites.SEARCH_SUPPORTED[site](
                 search_clients[site]
             ).main
+        except KeyError:
+            logging.warning(
+                "No ``search'' support for site: %s",
+                site
+            )
+        else:
             for job_search in job_searches:
+                logging.info(
+                    "Running search: %s: %s",
+                    site,
+                    json.dumps(job_search.to_dict())
+                )
                 try:
-                    for job in search_func(**job_search.to_dict()):
-                        logging.debug(">>> Job:\n\n%s", job)
+                    jobs = search_func(**job_search.to_dict())
+                except Exception as exc:
+                    logging.warning("%s", exc)
+                else:
+                    for job in jobs:
+                        logging.debug(
+                            ">>>>> Job:\n\n%s\n\n<<<<<",
+                            job
+                        )
+                        hostname = urllib.parse.urlparse(
+                            job.apply_url
+                        ).hostname
                         try:
-                            hostname = urllib.parse.urlparse(
-                                job.apply_url
-                            ).hostname
                             submit_func = sites.SUBMIT_SUPPORTED[hostname](
                                 webdriver, mistral_client,
                                 pre_submit_hook=pre_submit_hook
                             ).main
+                        except KeyError:
+                            logging.warning(
+                                "No ``submit'' support for site: %s",
+                                hostname
+                            )
+                        else:
                             logging.info(
                                 "Applying to job: %s: %s: %s",
                                 job.company_name, job.title, job.apply_url
                             )
-                            submit_func(
-                                job,
-                                main_config.apply.personal,
-                                RESUME_PDF,
-                                COVER_LETTER_DIR
-                            )
-                        except KeyError:
-                            logging.warning(
-                                "No support for site: %s",
-                                hostname
-                            )
-                        except Exception as exc:
-                            logging.warning("%s", exc)
-                except Exception as exc:
-                    logging.warning("%s", exc)
-        except KeyError:
-            logging.warning(
-                "No support for site: %s",
-                site
-            )
+                            try:
+                                submit_func(
+                                    job,
+                                    main_config.apply.personal,
+                                    RESUME_PDF,
+                                    COVER_LETTER_DIR
+                                )
+                            except Exception as exc:
+                                logging.warning("%s", exc)
 
     # webdriver.close()
 
