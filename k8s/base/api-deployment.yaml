@@ -12,11 +12,32 @@ spec:
         app: api
     spec:
       containers:
-      - name: api
-        image: apply2jobs-api:latest
-        resources:
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        ports:
-        - containerPort: 8000
+        - name: api
+          image: apply2jobs-api:latest
+          env:
+            - name: MONGODB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-initdb
+                  key: username
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-initdb
+                  key: password
+            - name: LINKEDIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: linkedin-credentials
+                  key: username
+            - name: LINKEDIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: linkedin-credentials
+                  key: password
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8000
