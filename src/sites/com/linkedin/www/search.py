@@ -4,17 +4,13 @@ from typing import Any
 import models
 from sites.base import _BaseSearch
 import utils.dicts
-from . import CLIENT_TYPE, SITE, SITE_SHORTNAME
+from . import SITE, SITE_SHORTNAME
 
 LOGGER = logging.getLogger(__name__)
 
 
 # pylint: disable=too-few-public-methods
 class Search(_BaseSearch):
-    client: CLIENT_TYPE
-
-    def __init__(self, client: CLIENT_TYPE):
-        self.client = client
 
     def main(self, **search_kwgs):
         results = self.client.search_jobs(**search_kwgs)

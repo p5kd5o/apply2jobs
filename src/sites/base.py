@@ -10,10 +10,11 @@ from models import Job, ApplyPersonalConfig
 
 # pylint: disable=too-few-public-methods
 class _BaseSearch(abc.ABC):
+    client: Any
 
-    @abc.abstractmethod
-    def __init__(self, client):
+    def __init__(self, client: Any):
         super().__init__()
+        self.client = client
 
     @abc.abstractmethod
     def main(self, **search_kwgs):
@@ -25,8 +26,10 @@ class _BaseSearch(abc.ABC):
 
 # pylint: disable=too-few-public-methods
 class _BaseSubmit(abc.ABC):
+    webdriver: WebDriver
+    mistral_client: Mistral
+    pre_submit_hook: list[Callable[[], Any]] = None
 
-    @abc.abstractmethod
     def __init__(
         self,
         webdriver: WebDriver,
@@ -34,6 +37,12 @@ class _BaseSubmit(abc.ABC):
         pre_submit_hook: list[Callable[[], Any]] = None
     ):
         super().__init__()
+        self.webdriver = webdriver
+        self.mistral_client = mistral_client
+        if pre_submit_hook is None:
+            self.pre_submit_hook = []
+        else:
+            self.pre_submit_hook = list(pre_submit_hook)
 
     @abc.abstractmethod
     def main(

@@ -21,22 +21,6 @@ LOGGER = logging.getLogger(__name__)
 
 # pylint: disable=too-few-public-methods
 class Submit(_BaseSubmit):
-    webdriver: WebDriver
-    mistral_client: mistralai.Mistral
-    pre_submit_hook: list[Callable[[], Any]]
-
-    def __init__(
-        self,
-        webdriver: WebDriver,
-        mistral_client: mistralai.Mistral,
-        pre_submit_hook: Iterable[Callable[[], Any]] = None
-    ):
-        self.webdriver = webdriver
-        self.mistral_client = mistral_client
-        if pre_submit_hook is None:
-            self.pre_submit_hook = []
-        else:
-            self.pre_submit_hook = list(pre_submit_hook)
 
     def main(
         self,
