@@ -1,0 +1,7 @@
+resources:
+  - api-deployment.yaml
+  - api-service.yaml
+  - mongo-data-pv.yaml
+  - mongo-data-pvc.yaml
+  - mongo-deployment.yaml
+  - mongo-service.yaml

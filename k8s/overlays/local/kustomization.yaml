@@ -1,0 +1,7 @@
+namePrefix: "apply2jobs-"
+nameSuffix: "-local"
+resources:
+  - ../../base
+patches:
+  - path: patches/mongo-data-pv.yaml
+  - path: patches/mongo-data-pvc.yaml
