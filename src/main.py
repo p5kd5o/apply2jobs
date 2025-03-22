@@ -12,23 +12,26 @@ import models
 import sites
 import utils.config
 
-CONFIG_FILE = os.getenv(
+CONFIG_FILE = pathlib.Path(os.getenv(
     "APPLY2JOBS_CONFIG",
     "config.yaml"
-)
+)).absolute()
 
-RESUME_PDF = os.getenv(
+RESUME_PDF = pathlib.Path(os.getenv(
     "APPLY2JOBS_RESUME_PDF",
     "resume.pdf"
-)
+)).absolute()
+
 COVER_LETTER_DIR = pathlib.Path(os.getenv(
     "APPLY2JOBS_COVER_LETTERS_DIR",
-    "cover_letters/"
-))
+    "cover-letters/"
+)).absolute()
 
 MISTRAL_MODEL = "mistral-large-latest"
-with open("api-keys/mistral-api-apply2jobs.key", encoding="utf-8") as istream:
-    MISTRAL_API_KEY = istream.read().strip()
+MISTRAL_API_KEY = os.getenv(
+    "MISTRAL_API_KEY",
+    ""
+)
 
 
 def _init_search_clients(
@@ -54,16 +57,26 @@ def _init_search_clients(
     return search_clients
 
 
-def _run_search_submit(
-        personal_config: models.Config,
-        site_search_config: dict[str, list[models.SearchElementJobConfig]],
-        site_search_clients: dict[str, object],
-        webdriver: selenium.webdriver.remote.webdriver.WebDriver,
-        mistral_client: mistralai.Mistral,
-        *,
-        confirm_before_submit: bool = True
-) -> None:
-    if confirm_before_submit:
+def main():
+    logging.basicConfig(
+        level=getattr(logging, os.getenv("LOG_LEVEL", "WARNING").upper())
+    )
+
+    main_config = utils.config.load_config_file(CONFIG_FILE)
+
+    site_search_config = {
+        site.host: site.jobs
+        for site in main_config.search.sites
+    }
+    site_search_clients = _init_search_clients(main_config.search.sites)
+
+    mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
+
+    webdriver_options = selenium.webdriver.FirefoxOptions()
+    # webdriver_options.add_argument("-headless")
+    webdriver = selenium.webdriver.Firefox(options=webdriver_options)
+
+    if main_config.apply.confirm_before_submit:
         pre_submit_hook = [lambda: input("<ENTER> to Continue...")]
     else:
         pre_submit_hook = None
@@ -123,35 +136,6 @@ def _run_search_submit(
                 except Exception as exc:
                     logging.warning("%s", exc)
                     continue
-
-
-def main():
-    logging.basicConfig(
-        level=getattr(logging, os.getenv("LOG_LEVEL", "WARNING").upper())
-    )
-
-    main_config = utils.config.load_config_file(CONFIG_FILE)
-
-    site_search_config = {
-        site.host: site.jobs
-        for site in main_config.search.sites
-    }
-    site_search_clients = _init_search_clients(main_config.search.sites)
-
-    mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
-
-    webdriver_options = selenium.webdriver.FirefoxOptions()
-    # webdriver_options.add_argument("-headless")
-    webdriver = selenium.webdriver.Firefox(options=webdriver_options)
-
-    _run_search_submit(
-        personal_config=main_config.apply.personal,
-        site_search_config=site_search_config,
-        site_search_clients =site_search_clients,
-        webdriver=webdriver,
-        mistral_client=mistral_client,
-        confirm_before_submit=main_config.apply.confirm_before_submit
-    )
 
     # webdriver.close()
 
