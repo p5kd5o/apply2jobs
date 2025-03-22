@@ -14,6 +14,7 @@ class ApplyPersonalLocationConfig(BaseModel, extra="forbid"):
     )
     country: str
 
+    # pylint: disable=too-many-arguments
     def to_str(
         self,
         *,

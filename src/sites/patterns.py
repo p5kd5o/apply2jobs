@@ -44,12 +44,16 @@ QUESTION_PATTERN_LOCATION_CITY = re.compile(
     r"\bcity\b",
     flags=re.IGNORECASE
 )
+QUESTION_PATTERN_SALARY = re.compile(
+    r"\b(pay|salary)\b",
+    flags=re.IGNORECASE
+)
 QUESTION_PATTERN_AUTHORIZED_TO_WORK = re.compile(
     r"\bauthorized\s+to\s+work\b",
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_IMMIGRATION_SPONSORSHIP = re.compile(
-    r"\bimmigration\b|\bsponsorship\b",
+    r"\b(immigration|sponsorship)\b",
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_AGREE = re.compile(
@@ -57,7 +61,7 @@ QUESTION_PATTERN_AGREE = re.compile(
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_RESUME = re.compile(
-    r"\bresume\b|\bcv\b",
+    r"\b(resume|cv)\b",
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_COVER_LETTER = re.compile(
@@ -77,7 +81,7 @@ QUESTION_PATTERN_SEXUAL_ORIENTATION = re.compile(
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_SEX_GENDER = re.compile(
-    r"\bsex\b|\bgender\b",
+    r"\b(sex|gender)\b",
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_VETERAN_STATUS = re.compile(
@@ -89,7 +93,7 @@ QUESTION_PATTERN_DISABILITY_STATUS = re.compile(
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_RACES = re.compile(
-    r"\braces\b|\bethnicities\b",
+    r"\b(races|ethnicities)\b",
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_ETHNICITY = re.compile(
@@ -101,6 +105,6 @@ QUESTION_PATTERN_HISPANIC_LATINO = re.compile(
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_UNITED_STATES = re.compile(
-    r"\bunited\s+states\b|\bu\.?s\.?a\.?\b",
+    r"\b(united\s+states|u\.?s\.?a\.?)\b",
     flags=re.IGNORECASE
 )

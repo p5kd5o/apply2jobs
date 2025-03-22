@@ -1,7 +1,8 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from utils import patterns
 from .apply_personal_contact_config import (
     ApplyPersonalContactConfig
 )
@@ -20,6 +21,7 @@ from .apply_personal_social_config import (
 class ApplyPersonalConfig(BaseModel, extra="forbid"):
     first_name: str
     last_name: str
+    desired_salary: str = Field(pattern=f"^{patterns.CURRENCY_PATTERN}$")
     contact: ApplyPersonalContactConfig
     location: ApplyPersonalLocationConfig
     demographic: ApplyPersonalDemographicConfig

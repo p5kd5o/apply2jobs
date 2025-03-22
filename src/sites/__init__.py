@@ -2,12 +2,12 @@ from importlib import import_module
 from logging import getLogger
 from pkgutil import iter_modules
 
-from .base import BaseSearch, BaseSubmit
+from . import base
 
 LOGGER = getLogger(__name__)
 
-SEARCH_SUPPORTED: dict[str, BaseSearch] = {}
-SUBMIT_SUPPORTED: dict[str, BaseSubmit] = {}
+SEARCH_SUPPORTED: dict[str, base._BaseSearch] = {}
+SUBMIT_SUPPORTED: dict[str, base._BaseSubmit] = {}
 SITE_CLIENT_TYPE: dict[str, type] = {}
 
 __SITE_MODULE_CLIENT_TYPE_ATTR__: str = "CLIENT_TYPE"

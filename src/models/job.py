@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, HttpUrl
@@ -12,4 +11,4 @@ class Job(BaseModel, extra="forbid"):
     title: str
     description: str
     apply_url: Annotated[HttpUrl, AfterValidator(str)]
-    source: Annotated[JobSource, AfterValidator(deepcopy)]
+    source: JobSource

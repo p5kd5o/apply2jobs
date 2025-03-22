@@ -1,17 +1,10 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field
-
-CURRENCY_SYMBOLS = """
-$¢£¤¥ƒ֏؋৲৳૱௹฿៛ℳ元円圆圓﷼₠₡₢₣₤₥₦₧₨₩₪₫€₭₮₯₰₱₲₳₴₵₶₷₸₹₺₻₼₽₾₿⃀
-""".strip()
-
-CURRENCY_PATTERN = fr"^[{CURRENCY_SYMBOLS}]?(\d+|\d{{1,3}}([,.]\d{{3}})+)$"
+from pydantic import BaseModel
 
 
 # pylint: disable=too-few-public-methods
 class ApplyPersonalDemographicConfig(BaseModel, extra="forbid"):
-    desired_salary: str = Field(pattern=CURRENCY_PATTERN)
     authorized_to_work: bool
     citizen: bool
     immigration_sponsorship: bool
@@ -41,6 +34,14 @@ class ApplyPersonalDemographicConfig(BaseModel, extra="forbid"):
         return "No"
 
     @property
+    def hispanic_status(self):
+        if self.ethnicity is None or self.ethnicity == "":
+            return "Decline to self identify"
+        if self.ethnicity.casefold() == "hispanic":
+            return "Yes"
+        return "No"
+
+    @property
     def veteran_status(self):
         if self.veteran is None:
             return "I don't wish to answer"
@@ -50,11 +51,3 @@ class ApplyPersonalDemographicConfig(BaseModel, extra="forbid"):
                 "protected veteran"
             )
         return "I am not a protected veteran"
-
-    @property
-    def hispanic_status(self):
-        if self.ethnicity is None or self.ethnicity == "":
-            return "Decline to self identify"
-        if self.ethnicity.casefold() == "hispanic":
-            return "Yes"
-        return "No"

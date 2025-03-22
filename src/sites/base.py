@@ -9,7 +9,7 @@ from models import Job, ApplyPersonalConfig
 
 
 # pylint: disable=too-few-public-methods
-class BaseSearch(abc.ABC):
+class _BaseSearch(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self, client):
@@ -19,9 +19,12 @@ class BaseSearch(abc.ABC):
     def main(self, **search_kwgs):
         pass
 
+    def __call__(self, *args, **kwgs):
+        return self.main(*args, **kwgs)
+
 
 # pylint: disable=too-few-public-methods
-class BaseSubmit(abc.ABC):
+class _BaseSubmit(abc.ABC):
 
     @abc.abstractmethod
     def __init__(
@@ -41,3 +44,6 @@ class BaseSubmit(abc.ABC):
         cover_letter_dir: str | pathlib.Path
     ) -> None:
         pass
+
+    def __call__(self, *args, **kwgs):
+        return self.main(*args, **kwgs)

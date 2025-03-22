@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 import models
-from sites.base import BaseSearch
+from sites.base import _BaseSearch
 import utils.dicts
 from . import CLIENT_TYPE, SITE, SITE_SHORTNAME
 
@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 # pylint: disable=too-few-public-methods
-class Search(BaseSearch):
+class Search(_BaseSearch):
     client: CLIENT_TYPE
 
     def __init__(self, client: CLIENT_TYPE):

@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import Annotated, Optional
 
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import (
+    BaseModel, BeforeValidator, Field, SerializationInfo, field_serializer
+)
 
 from utils.models import ensure_enum
 
@@ -50,13 +52,26 @@ class SearchElementJobConfig(BaseModel, extra="forbid"):
     distance: Optional[int] = None
     limit: Optional[Annotated[int, Field(ge=-1)]] = -1
 
-    def to_dict(self):
-        return {
-            "keywords": self.keywords,
-            "experience": list(x.value for x in self.experience),
-            "job_type": list(x.value for x in self.job_type),
-            "remote": list(x.value for x in self.remote),
-            "location_name": self.location_name,
-            "distance": self.distance,
-            "limit": self.limit
-        }
+    @field_serializer("experience")
+    def _serialize_experience(
+        self,
+        experience: SearchElementJobExperience,
+        _: SerializationInfo
+    ) -> list[str]:
+        return [e.name for e in experience]
+
+    @field_serializer("job_type")
+    def _serialize_job_type(
+        self,
+        job_type: SearchElementJobType,
+        _: SerializationInfo
+    ) -> list[str]:
+        return [e.name for e in job_type]
+
+    @field_serializer("remote")
+    def _serialize_remote(
+        self,
+        remote: SearchElementJobRemote,
+        _: SerializationInfo
+    ) -> list[str]:
+        return [e.name for e in remote]

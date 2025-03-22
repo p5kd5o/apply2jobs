@@ -12,7 +12,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from models import ApplyPersonalConfig, Job
-from sites.base import BaseSubmit
+from sites.base import _BaseSubmit
 from sites.questions import get_question_response
 from utils import cover_letters, pdf
 
@@ -20,7 +20,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 # pylint: disable=too-few-public-methods
-class Submit(BaseSubmit):
+class Submit(_BaseSubmit):
     webdriver: WebDriver
     mistral_client: mistralai.Mistral
     pre_submit_hook: list[Callable[[], Any]]
@@ -73,7 +73,13 @@ class Submit(BaseSubmit):
 
         for question_div in application_form.find_all(
             "div",
-            attrs={"class": ["file-upload", "text-input-wrapper", "select"]}
+            attrs={
+                "class": [
+                    "file-upload",
+                    "text-input-wrapper",
+                    "select",
+                ]
+            }
         ):
             if "file-upload" in question_div.attrs["class"]:
                 question_input = question_div.find("input")
@@ -134,7 +140,7 @@ class Submit(BaseSubmit):
                         cover_letter_path=cover_letter_path
                     )
                 )
-                time.sleep(0.3)
+                time.sleep(0.5)
                 question_input_element.send_keys(Keys.RETURN)
 
         try:

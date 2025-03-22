@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import pathlib
@@ -56,7 +55,7 @@ def _init_search_clients(
 
 def main():
     logging.basicConfig(
-        level=getattr(logging, os.getenv("LOG_LEVEL", "WARNING"))
+        level=getattr(logging, os.getenv("LOG_LEVEL", "WARNING").upper())
     )
 
     main_config = config.load_config_file(CONFIG_FILE)
@@ -79,9 +78,7 @@ def main():
     mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
     for site, job_searches in search_site_jobs_config.items():
         try:
-            search_func = sites.SEARCH_SUPPORTED[site](
-                search_clients[site]
-            ).main
+            search_func = sites.SEARCH_SUPPORTED[site](search_clients[site])
         except KeyError:
             logging.warning(
                 "No ``search'' support for site: %s",
@@ -90,12 +87,12 @@ def main():
         else:
             for job_search in job_searches:
                 logging.info(
-                    "Running search: %s: %s",
+                    "Search: %s: %s",
                     site,
-                    json.dumps(job_search.to_dict())
+                    job_search.model_dump_json()
                 )
                 try:
-                    jobs = search_func(**job_search.to_dict())
+                    jobs = search_func(**job_search.model_dump())
                 except Exception as exc:
                     logging.warning("%s", exc)
                 else:
@@ -111,7 +108,7 @@ def main():
                             submit_func = sites.SUBMIT_SUPPORTED[hostname](
                                 webdriver, mistral_client,
                                 pre_submit_hook=pre_submit_hook
-                            ).main
+                            )
                         except KeyError:
                             logging.warning(
                                 "No ``submit'' support for site: %s",
@@ -119,15 +116,15 @@ def main():
                             )
                         else:
                             logging.info(
-                                "Applying to job: %s: %s: %s",
+                                "Submit: %s: %s: %s",
                                 job.company_name, job.title, job.apply_url
                             )
                             try:
                                 submit_func(
                                     job,
                                     main_config.apply.personal,
-                                    RESUME_PDF,
-                                    COVER_LETTER_DIR
+                                    os.path.abspath(RESUME_PDF),
+                                    os.path.abspath(COVER_LETTER_DIR)
                                 )
                             except Exception as exc:
                                 logging.warning("%s", exc)

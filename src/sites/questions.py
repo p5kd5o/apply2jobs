@@ -8,6 +8,7 @@ from utils import matching
 from . import patterns
 
 
+# pylint: disable=too-many-return-statements
 def get_question_response(
     question: str,
     personal: ApplyPersonalConfig,
@@ -38,6 +39,8 @@ def get_question_response(
             return personal.social.website
         case patterns.QUESTION_PATTERN_HOW_DID_YOU_HEAR:
             return job_source.shortname
+        case patterns.QUESTION_PATTERN_SALARY:
+            return personal.desired_salary
         case patterns.QUESTION_PATTERN_MAILING_ADDRESS:
             return personal.location.to_str(country=False)
         case patterns.QUESTION_PATTERN_LOCATION_CITY:
