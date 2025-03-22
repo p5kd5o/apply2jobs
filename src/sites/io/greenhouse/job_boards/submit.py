@@ -131,16 +131,16 @@ class Submit(_BaseSubmit):
                 question_input_element = self.webdriver.find_element(
                     by=By.ID, value=question_input.attrs["id"]
                 )
-                question_input_element.send_keys(
-                    get_question_response(
-                        question=question_label.contents[0],
-                        personal=personal,
-                        job_source=job.source,
-                        resume_path=resume_path,
-                        cover_letter_path=cover_letter_path
-                    )
-                )
-                time.sleep(0.5)
+                for keystroke in get_question_response(
+                    question=question_label.contents[0],
+                    personal=personal,
+                    job_source=job.source,
+                    resume_path=resume_path,
+                    cover_letter_path=cover_letter_path
+                ):
+                    question_input_element.send_keys(keystroke)
+                    time.sleep(0.025)
+                time.sleep(0.475)
                 question_input_element.send_keys(Keys.RETURN)
 
         try:

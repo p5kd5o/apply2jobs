@@ -6,10 +6,11 @@ import urllib.parse
 
 import mistralai
 import selenium.webdriver
+import selenium.webdriver.remote.webdriver
 
-import config
 import models
 import sites
+import utils.config
 
 CONFIG_FILE = os.getenv(
     "APPLY2JOBS_CONFIG",
@@ -53,81 +54,103 @@ def _init_search_clients(
     return search_clients
 
 
-def main():
-    logging.basicConfig(
-        level=getattr(logging, os.getenv("LOG_LEVEL", "WARNING").upper())
-    )
-
-    main_config = config.load_config_file(CONFIG_FILE)
-
-    search_site_jobs_config = {
-        site.host: site.jobs
-        for site in main_config.search.sites
-    }
-    search_clients = _init_search_clients(main_config.search.sites)
-
-    webdriver_options = selenium.webdriver.FirefoxOptions()
-    # webdriver_options.add_argument("-headless")
-    webdriver = selenium.webdriver.Firefox(options=webdriver_options)
-
-    if main_config.apply.confirm_before_submit:
+def _run_search_submit(
+        personal_config: models.Config,
+        site_search_config: dict[str, list[models.SearchElementJobConfig]],
+        site_search_clients: dict[str, object],
+        webdriver: selenium.webdriver.remote.webdriver.WebDriver,
+        mistral_client: mistralai.Mistral,
+        *,
+        confirm_before_submit: bool = True
+) -> None:
+    if confirm_before_submit:
         pre_submit_hook = [lambda: input("<ENTER> to Continue...")]
     else:
         pre_submit_hook = None
 
-    mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
-    for site, job_searches in search_site_jobs_config.items():
+    for site, job_searches in site_search_config.items():
         try:
-            search_func = sites.SEARCH_SUPPORTED[site](search_clients[site])
+            search_func = sites.SEARCH_SUPPORTED[site](
+                site_search_clients[site]
+            )
         except KeyError:
             logging.warning(
                 "No ``search'' support for site: %s",
                 site
             )
-        else:
-            for job_search in job_searches:
+            continue
+
+        for job_search in job_searches:
+            logging.info(
+                "Search: %s: %s",
+                site,
+                job_search.model_dump_json()
+            )
+            try:
+                jobs = search_func(**job_search.model_dump())
+            except Exception as exc:
+                logging.warning("%s", exc)
+                continue
+
+            for job in jobs:
+                hostname = urllib.parse.urlparse(
+                    job.apply_url
+                ).hostname
+                try:
+                    submit_func = sites.SUBMIT_SUPPORTED[hostname](
+                        webdriver,
+                        mistral_client,
+                        pre_submit_hook=pre_submit_hook
+                    )
+                except KeyError:
+                    logging.warning(
+                        "No ``submit'' support for site: %s",
+                        hostname
+                    )
+                    continue
+
                 logging.info(
-                    "Search: %s: %s",
-                    site,
-                    job_search.model_dump_json()
+                    "Submit: %s: %s: %s",
+                    job.company_name, job.title, job.apply_url
                 )
                 try:
-                    jobs = search_func(**job_search.model_dump())
+                    submit_func(
+                        job,
+                        personal_config,
+                        os.path.abspath(RESUME_PDF),
+                        os.path.abspath(COVER_LETTER_DIR)
+                    )
                 except Exception as exc:
                     logging.warning("%s", exc)
-                else:
-                    for job in jobs:
-                        logging.debug(
-                            ">>>>> Job:\n\n%s\n\n<<<<<",
-                            job
-                        )
-                        hostname = urllib.parse.urlparse(
-                            job.apply_url
-                        ).hostname
-                        try:
-                            submit_func = sites.SUBMIT_SUPPORTED[hostname](
-                                webdriver, mistral_client,
-                                pre_submit_hook=pre_submit_hook
-                            )
-                        except KeyError:
-                            logging.warning(
-                                "No ``submit'' support for site: %s",
-                                hostname
-                            )
-                        else:
-                            logging.info(
-                                "Submit: %s: %s: %s",
-                                job.company_name, job.title, job.apply_url
-                            )
-                            try:
-                                submit_func(
-                                    job,
-                                    main_config.apply.personal,
-                                    os.path.abspath(RESUME_PDF),
-                                    os.path.abspath(COVER_LETTER_DIR)
-                                )
-                            except Exception as exc:
-                                logging.warning("%s", exc)
+
+
+def main():
+    logging.basicConfig(
+        level=getattr(logging, os.getenv("LOG_LEVEL", "WARNING").upper())
+    )
+
+    main_config = utils.config.load_config_file(CONFIG_FILE)
+
+    site_search_config = {
+        site.host: site.jobs
+        for site in main_config.search.sites
+    }
+    site_search_clients = _init_search_clients(main_config.search.sites)
+
+    mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
+
+    webdriver_options = selenium.webdriver.FirefoxOptions()
+    # webdriver_options.add_argument("-headless")
+    webdriver = selenium.webdriver.Firefox(options=webdriver_options)
+
+    _run_search_submit(
+        personal_config=main_config.apply.personal,
+        site_search_config=site_search_config,
+        site_search_clients =site_search_clients,
+        webdriver=webdriver,
+        mistral_client=mistral_client,
+        confirm_before_submit=main_config.apply.confirm_before_submit
+    )
 
     # webdriver.close()
 
