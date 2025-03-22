@@ -122,6 +122,7 @@ def _run_search_submit(
                     )
                 except Exception as exc:
                     logging.warning("%s", exc)
+                    continue
 
 
 def main():
