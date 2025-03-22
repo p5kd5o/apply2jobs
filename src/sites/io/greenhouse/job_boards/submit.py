@@ -1,15 +1,12 @@
 import logging
 import pathlib
 import time
-from typing import Any, Callable, Iterable
 
 import bs4
-import mistralai
 import pymupdf4llm
 import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.remote.webdriver import WebDriver
 
 from models import ApplyPersonalConfig, Job
 from sites.base import _BaseSubmit
