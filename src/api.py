@@ -5,9 +5,7 @@ api = FastAPI(
     title="apply2jobs"
 )
 
-origins_regex = [
-    r"https?://localhost(:\d+)?",
-]
+origins_regex = r"https?://localhost(:\d+)?"
 api.add_middleware(
     CORSMiddleware,
     allow_origin_regex=origins_regex,
@@ -15,7 +13,3 @@ api.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@api.get("/")
-async def root():
-    return {"message": "Hello World"}
