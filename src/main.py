@@ -129,7 +129,7 @@ def main():
                 try:
                     submit_func(
                         job,
-                        personal_config,
+                        main_config.apply.personal,
                         os.path.abspath(RESUME_PDF),
                         os.path.abspath(COVER_LETTER_DIR)
                     )
