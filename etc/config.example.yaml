@@ -22,7 +22,7 @@ search:
 apply:
   confirm_before_submit: true
   personal:
-    first_name: Saturo
+    first_name: Satoru
     last_name: Gojo
     desired_salary: "$250,000"
     contact:
