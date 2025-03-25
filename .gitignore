@@ -4,6 +4,7 @@
 
 *.key
 /api-keys/
+/etc/config.yaml
 
 ####################
 # Python.gitignore
