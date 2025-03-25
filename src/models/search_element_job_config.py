@@ -50,7 +50,6 @@ class SearchElementJobConfig(BaseModel, extra="forbid"):
     ]]] = []
     location_name: Optional[str] = None
     distance: Optional[int] = None
-    limit: Optional[Annotated[int, Field(ge=-1)]] = -1
 
     @field_serializer("experience")
     def _serialize_experience(

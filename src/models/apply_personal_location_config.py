@@ -1,16 +1,19 @@
 from typing import Annotated, Optional
 
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import AfterValidator, BaseModel, BeforeValidator, Field
 
 
 # pylint: disable=too-few-public-methods
 class ApplyPersonalLocationConfig(BaseModel, extra="forbid"):
-    street_address: str
-    street_address_line_2: Optional[str] = None
+    street_address: Annotated[
+        str | list[str], AfterValidator(
+            lambda x: ", ".join(x) if isinstance(x, list) else x
+        )
+    ]
     city: str
     state: str
     zip_code: Annotated[str, BeforeValidator(str)] = Field(
-        pattern=r"^[0-9]{5}$"
+        pattern=r"^([0-9]+[0-9-]?[0-9]+)+$"
     )
     country: str
 
@@ -27,8 +30,6 @@ class ApplyPersonalLocationConfig(BaseModel, extra="forbid"):
         elements = []
         if street_address:
             elements.append(self.street_address)
-            if self.street_address_line_2 is not None:
-                elements.append(self.street_address_line_2)
         if city:
             elements.append(self.city)
         if state and zip_code:

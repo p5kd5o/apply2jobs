@@ -1,0 +1,55 @@
+search:
+  sites:
+  - host: "www.linkedin.com"
+    auth:
+      scheme: BASIC
+      credentials:
+        username:
+          value_type: ENV
+          value: LINKEDIN_USERNAME
+        password:
+          value_type: ENV
+          value: LINKEDIN_PASSWORD
+    jobs:
+    - keywords: Jujutsu Sorcerer
+      experience:
+      - DIRECTOR
+      job_type:
+      - FULLTIME
+      remote:
+      - ONSITE
+      location_name: Japan
+apply:
+  confirm_before_submit: true
+  personal:
+    first_name: Saturo
+    last_name: Gojo
+    desired_salary: "$250,000"
+    contact:
+      phone_number: +81-90-1234-5678
+      email_address: satoru.gojo@jujutsuhigh.net
+    social:
+      linkedin: https://linkedin.com/in/satoru.gojo
+      github: https://github.com/limitless
+      website: https://gojo.com
+    location:
+      street_address:
+        - Hashimoto Bldg.
+        - 24-1 Sakuragaokacho
+      city: Shibuya 
+      state: Tokyo
+      zip_code: 150-0031
+      country: Japan
+    demographic:
+      sex: M
+      gender: Male
+      sexual_orientation: Asexual
+      transgender: false
+      citizen: false
+      immigration_sponsorship: true
+      authorized_to_work: true
+      races:
+      - Yamato
+      ethnicity: Non-hispanic
+      disability: false
+      veteran: true
