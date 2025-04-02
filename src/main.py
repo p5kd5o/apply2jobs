@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import pathlib
@@ -64,11 +65,11 @@ def main():
 
     main_config = utils.config.load_config_file(CONFIG_FILE)
 
+    site_search_clients = _init_search_clients(main_config.search.sites)
     site_search_config = {
         site.host: site.jobs
         for site in main_config.search.sites
     }
-    site_search_clients = _init_search_clients(main_config.search.sites)
 
     mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
 
