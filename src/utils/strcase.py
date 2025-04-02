@@ -80,12 +80,12 @@ class CasedStr(str):
                 CaseEnum.KEBAB:
                 lambda words: "-".join(word.lower() for word in words),
                 CaseEnum.CAMEL: (
-                lambda cls:
-                lambda words: cls.__join_camel(words, pascal=False)
+                    lambda cls:
+                    lambda words: cls.__join_camel(words, pascal=False)
                 )(cls),
                 CaseEnum.PASCAL: (
-                lambda cls:
-                lambda words: cls.__join_camel(words, pascal=True)
+                    lambda cls:
+                    lambda words: cls.__join_camel(words, pascal=True)
                 )(cls),
             }[case]
         except KeyError as exc:

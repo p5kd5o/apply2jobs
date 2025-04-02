@@ -13,7 +13,7 @@ from selenium.webdriver.common.keys import Keys
 from models import ApplyPersonalConfig, Job
 from sites.base import _BaseSubmit
 from sites.questions import get_question_response
-from utils import cover_letters, pdf
+from utils import cover_letters, pdf, xpath
 
 LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class Submit(_BaseSubmit):
         personal: ApplyPersonalConfig,
         resume_path: str | pathlib.Path,
         cover_letter_dir: str | pathlib.Path
-    ) -> None:
+    ) -> dict[str, list[Exception | None]]:
         resume_path = pathlib.Path(resume_path)
         cover_letter_dir = pathlib.Path(cover_letter_dir)
 
@@ -71,7 +71,7 @@ class Submit(_BaseSubmit):
             "text-input-wrapper": self.__fill_text_input,
             "select": self.__fill_select,
         }
-        self.__fill_form(
+        fill_form_results = self.__fill_form(
             FormResponseInfo(job, personal, resume_path, cover_letter_path),
             soup,
             fill_form_funcs
@@ -83,22 +83,28 @@ class Submit(_BaseSubmit):
         for func in self.pre_submit_hook:
             func()
         submit_button.click()
-        time.sleep(1)
+        time.sleep(5)
+        return fill_form_results
 
     def __fill_form(
         self,
         form_response_info: FormResponseInfo,
         soup: bs4.BeautifulSoup,
         fill_form_funcs: dict[str, FillFormFuncType]
-    ) -> None:
-        application_form = soup.find("form", attrs={"id": "application-form"})
+    ) -> dict[str, list[Exception | None]]:
+        application_form = soup.find(
+            "form", attrs={"id": "application-form"}
+        )
         question_divs = application_form.find_all(
             "div", attrs={"class": list(fill_form_funcs.keys())}
         )
-        fill_form_results = [
-            self.__fill_form_div(form_response_info, question_div, fill_form_funcs)
+        fill_form_results = {
+            xpath.get_node_xpath(question_div):
+            self.__fill_form_div(
+                form_response_info, question_div, fill_form_funcs
+            )
             for question_div in question_divs
-        ]
+        }
         try:
             gdpr_data_checkbox_input_element = self.webdriver.find_element(
                 by=By.ID, value="gdpr_demographic_data_consent_given_1"
@@ -115,7 +121,7 @@ class Submit(_BaseSubmit):
         form_response_info: FormResponseInfo,
         question_div: bs4.BeautifulSoup,
         fill_form_funcs: dict[str, FillFormFuncType]
-    ):
+    ) -> list[Exception | None]:
         return [
             fill_form_funcs[class_attr](form_response_info, question_div)
             if class_attr in fill_form_funcs
@@ -127,7 +133,7 @@ class Submit(_BaseSubmit):
         self,
         form_response_info: FormResponseInfo,
         question_div: bs4.BeautifulSoup
-    ) -> None:
+    ) -> Exception | None:
         try:
             question_input = question_div.find("input")
             question_label = question_div.find(
@@ -154,7 +160,7 @@ class Submit(_BaseSubmit):
         self,
         form_response_info: FormResponseInfo,
         question_div: bs4.BeautifulSoup
-    ) -> None:
+    ) -> Exception | None:
         try:
             question_input_wrapper = question_div.find(
                 "div",
@@ -182,7 +188,7 @@ class Submit(_BaseSubmit):
         self,
         form_response_info: FormResponseInfo,
         question_div: bs4.BeautifulSoup
-    ) -> None:
+    ) -> Exception | None:
         try:
             question_select_container = question_div.find(
                 "div",

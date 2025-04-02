@@ -51,7 +51,7 @@ class _BaseSubmit(abc.ABC):
         personal: ApplyPersonalConfig,
         resume_path: str | pathlib.Path,
         cover_letter_dir: str | pathlib.Path
-    ) -> None:
+    ) -> dict[str, list[Exception | None]]:
         pass
 
     def __call__(self, *args, **kwgs):
