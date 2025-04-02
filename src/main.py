@@ -34,6 +34,8 @@ MISTRAL_API_KEY = os.getenv(
     ""
 )
 
+LOG_LEVEL = os.getenv("LOG_LEVEL", "WARNING").upper()
+
 
 def _init_search_clients(
     search_sites: list[models.SearchElementConfig]
@@ -59,9 +61,7 @@ def _init_search_clients(
 
 
 def main():
-    logging.basicConfig(
-        level=getattr(logging, os.getenv("LOG_LEVEL", "WARNING").upper())
-    )
+    logging.basicConfig(level=getattr(logging, LOG_LEVEL))
 
     main_config = utils.config.load_config_file(CONFIG_FILE)
 
@@ -71,11 +71,9 @@ def main():
         for site in main_config.search.sites
     }
 
-    mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
-
     webdriver_options = selenium.webdriver.FirefoxOptions()
-    # webdriver_options.add_argument("-headless")
-    webdriver = selenium.webdriver.Firefox(options=webdriver_options)
+
+    mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
 
     if main_config.apply.confirm_before_submit:
         pre_submit_hook = [lambda: input("<ENTER> to Continue...")]
@@ -84,7 +82,7 @@ def main():
 
     for site, job_searches in site_search_config.items():
         try:
-            search_func = sites.SEARCH_SUPPORTED[site](
+            searcher = sites.SEARCH_SUPPORTED[site](
                 site_search_clients[site]
             )
         except KeyError:
@@ -101,18 +99,16 @@ def main():
                 job_search.model_dump_json()
             )
             try:
-                jobs = search_func(**job_search.model_dump())
+                jobs = searcher(**job_search.model_dump())
             except Exception as exc:
                 logging.warning("%s", exc)
                 continue
 
             for job in jobs:
-                hostname = urllib.parse.urlparse(
-                    job.apply_url
-                ).hostname
+                hostname = urllib.parse.urlparse(job.apply_url).hostname
                 try:
-                    submit_func = sites.SUBMIT_SUPPORTED[hostname](
-                        webdriver,
+                    submitter = sites.SUBMIT_SUPPORTED[hostname](
+                        selenium.webdriver.Firefox(options=webdriver_options),
                         mistral_client,
                         pre_submit_hook=pre_submit_hook
                     )
@@ -122,13 +118,15 @@ def main():
                         hostname
                     )
                     continue
+                finally:
+                    submitter.webdriver.close()
 
                 logging.info(
                     "Submit: %s: %s: %s",
                     job.company_name, job.title, job.apply_url
                 )
                 try:
-                    submit_func(
+                    submitter(
                         job,
                         main_config.apply.personal,
                         os.path.abspath(RESUME_PDF),
@@ -137,8 +135,8 @@ def main():
                 except Exception as exc:
                     logging.warning("%s", exc)
                     continue
-
-    # webdriver.close()
+                finally:
+                    submitter.webdriver.close()
 
 
 if __name__ == "__main__":

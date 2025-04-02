@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Annotated, Optional
 
 from pydantic import (
-    BaseModel, BeforeValidator, Field, SerializationInfo, field_serializer
+    BaseModel, BeforeValidator, SerializationInfo, field_serializer
 )
 
 from utils.models import ensure_enum
