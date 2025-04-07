@@ -2,10 +2,12 @@ from enum import Enum
 from typing import Annotated, Optional
 
 from pydantic import (
-    BaseModel, BeforeValidator, Field, SerializationInfo, field_serializer
+     BeforeValidator, Field, SerializationInfo, field_serializer
 )
 
 from utils.models import ensure_enum
+
+from .base_model import _BaseModel
 
 
 class SearchElementAuthCredentialValueType(Enum):
@@ -14,7 +16,7 @@ class SearchElementAuthCredentialValueType(Enum):
 
 
 # pylint: disable=too-few-public-methods
-class SearchElementAuthCredentialConfig(BaseModel, extra="forbid"):
+class SearchElementAuthCredentialConfig(_BaseModel):
     value_type: Optional[Annotated[
         SearchElementAuthCredentialValueType,
         BeforeValidator(ensure_enum(SearchElementAuthCredentialValueType))

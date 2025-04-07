@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from .base_model import _BaseModel
 
 
 # pylint: disable=too-few-public-methods
-class JobSource(BaseModel, extra="forbid"):
+class JobSource(_BaseModel):
     shortname: str
     site: str
     url: str

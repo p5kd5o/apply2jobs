@@ -2,10 +2,12 @@ from enum import Enum
 from typing import Annotated, Optional
 
 from pydantic import (
-    BaseModel, BeforeValidator, SerializationInfo, field_serializer
+    BeforeValidator, SerializationInfo, field_serializer
 )
 
 from utils.models import ensure_enum
+
+from .base_model import _BaseModel
 
 
 class SearchElementJobExperience(str, Enum):
@@ -34,7 +36,7 @@ class SearchElementJobRemote(str, Enum):
 
 
 # pylint: disable=too-few-public-methods
-class SearchElementJobConfig(BaseModel, extra="forbid"):
+class SearchElementJobConfig(_BaseModel):
     keywords: Optional[str] = None
     experience: Optional[list[Annotated[
         SearchElementJobExperience,

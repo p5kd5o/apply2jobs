@@ -31,7 +31,7 @@ class CasedStr(str):
     def case(self) -> str:
         return self.__case.value
 
-    def convert_case(self, to_case: CaseType) -> Self:
+    def convert(self, to_case: CaseType) -> Self:
         return CasedStr(
             "" if len(self) == 0 else
             self.__join_func(to_case)(self.__split_func(self.case)(self))

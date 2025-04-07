@@ -6,10 +6,11 @@ import urllib
 import urllib.parse
 
 import mistralai
+import pymongo
 import selenium.webdriver
-import selenium.webdriver.remote.webdriver
 
 import models
+import storage
 import sites
 import utils.config
 
@@ -27,6 +28,11 @@ COVER_LETTER_DIR = pathlib.Path(os.getenv(
     "APPLY2JOBS_COVER_LETTERS_DIR",
     "cover-letters/"
 )).absolute()
+
+STORAGE_BACKEND = os.getenv(
+    "APPLY2JOBS_STORAGE_BACKEND",
+    "filesystem"
+)
 
 MISTRAL_MODEL = "mistral-large-latest"
 MISTRAL_API_KEY = os.getenv(
