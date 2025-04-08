@@ -27,22 +27,32 @@ class FilesystemBackend(_BaseBackend):
         return (
             self.__directory /
             CasedStr(data_type.__name__).convert(to_case=self.table_case)
-        )
+        ).with_suffix(".json")
 
     def read_all(self, data_type: type) -> Sequence[_BaseModel]:
-        return map(data_type, json.load(self.filepath(data_type)))
+        return map(data_type.from_dict, json.loads(
+            self.filepath(data_type).read_text()
+        ))
 
     def read(self, _id: UUID, data_type: type) -> _BaseModel | None:
-        for value in json.loads(self.filepath(data_type).read_text()):
-            if value.get("_id") == _id:
-                return data_type(value)
+        filepath = self.filepath(data_type)
+        try:
+            filedata = json.loads(filepath.read_text())
+        except FileNotFoundError:
+            filedata = []
+        for value in filedata:
+            if value.get("_id") == str(_id):
+                return data_type.from_dict(value)
         return None
 
     def create(self, data: _BaseModel) -> UUID:
         filepath = self.filepath(type(data))
-        filedata = json.loads(filepath.read_text())
+        try:
+            filedata = json.loads(filepath.read_text())
+        except FileNotFoundError:
+            filedata = []
         new_uuid = uuid4()
-        new_data = {**data.model_dump(mode="json"), "_id": new_uuid}
+        new_data = {**data.model_dump(mode="json"), "_id": str(new_uuid)}
         filepath.write_text(json.dumps([*filedata, new_data]))
         return new_uuid
 
@@ -50,10 +60,13 @@ class FilesystemBackend(_BaseBackend):
         self, _id: UUID, data: _BaseModel, upsert: bool = False
     ) -> UUID | None:
         filepath = self.filepath(type(data))
-        filedata = json.loads(filepath.read_text())
+        try:
+            filedata = json.loads(filepath.read_text())
+        except FileNotFoundError:
+            filedata = []
         for index, element in enumerate(filedata):
-            if element.get("_id") == _id:
-                new_data = {**data.model_dump(mode="json"), "_id": _id}
+            if element.get("_id") == str(_id):
+                new_data = {**data.model_dump(mode="json"), "_id": str(_id)}
                 filepath.write_text(json.dumps([
                     *filedata[:index], new_data, *filedata[index+1:]
                 ]))
@@ -64,9 +77,12 @@ class FilesystemBackend(_BaseBackend):
 
     def delete(self, _id: UUID, data_type: type) -> UUID | None:
         filepath = self.filepath(data_type)
-        filedata = json.loads(filepath.read_text())
+        try:
+            filedata = json.loads(filepath.read_text())
+        except FileNotFoundError:
+            filedata = []
         for index, element in enumerate(filedata):
-            if element.get("_id") == _id:
+            if element.get("_id") == str(_id):
                 filepath.write_text(json.dumps([
                     *filedata[:index], *filedata[index+1:]
                 ]))

@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic import BaseModel
 
 from utils.types.id import _Id
@@ -10,3 +12,7 @@ class _BaseModel(BaseModel, extra="forbid"):
     def __init__(self, *args, _id: _Id = None, **kwgs):
         super().__init__(*args, **kwgs)
         self._id = _id
+
+    @classmethod
+    def from_dict(cls, value) -> Self:
+        return cls(**value)

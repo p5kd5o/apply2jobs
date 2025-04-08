@@ -12,7 +12,10 @@ LOGGER = logging.getLogger(__name__)
 # pylint: disable=too-few-public-methods
 class Search(_BaseSearch):
 
+    DEFAULT_LIMIT = 5
+
     def main(self, **search_kwgs) -> list[Job]:
+        search_kwgs.setdefault("limit", self.DEFAULT_LIMIT)
         results = self.client.search_jobs(**search_kwgs)
         return [job for job in map(self._get_job, results) if job is not None]
 

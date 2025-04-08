@@ -65,5 +65,5 @@ class IngestService(_BaseService):
                     LOGGER.warning("%s", exc)
                 else:
                     for job in jobs:
-                        results.append(self.__backend.create(job))
+                        results.append(self.backend.create(job))
         return results

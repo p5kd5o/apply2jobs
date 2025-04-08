@@ -111,36 +111,35 @@ def main():
     for job in jobs_results:
         hostname = urllib.parse.urlparse(job.apply_url).hostname
         try:
-            submitter = sites.SUBMIT_SUPPORTED[hostname](
-                selenium.webdriver.Firefox(options=webdriver_options),
-                mistral_client,
-                pre_submit_hook=pre_submit_hook
-            )
+            submit_supporter = sites.SUBMIT_SUPPORTED[hostname]
         except KeyError:
             logging.warning(
                 "No ``submit'' support for site: %s",
                 hostname
             )
-            continue
-        finally:
-            submitter.webdriver.close()
-
-        logging.info(
-            "Submit: %s: %s: %s",
-            job.company_name, job.title, job.apply_url
-        )
-        try:
-            submitter(
-                job,
-                main_config.apply.personal,
-                os.path.abspath(args.resume_pdf),
-                os.path.abspath(args.cover_letter_dir)
+        else:
+            logging.info(
+                "Submit: %s: %s: %s",
+                job.company_name, job.title, job.apply_url
             )
-        except Exception as exc:
-            logging.warning("%s", exc)
-            continue
-        finally:
-            submitter.webdriver.close()
+            try:
+                webdriver = selenium.webdriver.Firefox(
+                    options=webdriver_options
+                )
+                submitter = submit_supporter(
+                    webdriver, mistral_client,
+                    pre_submit_hook=pre_submit_hook
+                )
+                submitter(
+                    job,
+                    main_config.apply.personal,
+                    os.path.abspath(args.resume_pdf),
+                    os.path.abspath(args.cover_letter_dir)
+                )
+            except Exception as exc:
+                logging.warning("%s", exc)
+            finally:
+                webdriver.close()
 
 
 if __name__ == "__main__":
