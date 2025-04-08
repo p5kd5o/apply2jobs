@@ -11,4 +11,4 @@ LOGGER = getLogger(__name__)
 class JobsService(_BaseService):
 
     def get_all(self) -> Sequence[models.Job]:
-        return self.backend.read_all(models.Job)
+        return self.backend.find(models.Job, {})

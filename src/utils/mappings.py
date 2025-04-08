@@ -1,9 +1,9 @@
 import operator
-from typing import Any, Callable
+from typing import Any, Callable, Mapping, Sequence
 
 
 def find(
-    context: dict[Any, Any],
+    context: Mapping[Any, Any],
     key: Any,
     compare_func: Callable[[Any, Any], bool] = None
 ) -> Any:
@@ -18,3 +18,11 @@ def find(
         if isinstance(item_value, dict):
             queue.extend(item_value.items())
     raise KeyError(repr(key))
+
+
+def filter_subset(
+    mapping: Mapping[Any, Any],
+    keys=Sequence[Any]
+) -> dict[Any, Any]:
+    to_keep = set(keys)
+    return {key: value for key, value in mapping.items() if key in to_keep}

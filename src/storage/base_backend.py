@@ -37,23 +37,35 @@ class _BaseBackend(abc.ABC):
             )
 
     @abc.abstractmethod
-    def read_all(self, data_type: type) -> Sequence[_BaseModel]:
+    def create(self, value: _BaseModel) -> object:
         pass
 
     @abc.abstractmethod
-    def read(self, _id: _Id, data_type: type) -> _BaseModel:
+    def create_many(
+        self, data_type: type, *values: _BaseModel
+    ) -> Sequence[object]:
         pass
 
     @abc.abstractmethod
-    def create(self, data: _BaseModel) -> object:
+    def get(self, data_type: type, _id: _Id) -> _BaseModel | None:
+        pass
+
+    @abc.abstractmethod
+    def find(
+        self, data_type: type, constraints: dict[str, object]
+    ) -> Sequence[_BaseModel]:
         pass
 
     @abc.abstractmethod
     def update(
-        self, _id: _Id, data: _BaseModel, upsert: bool = False
+        self, _id: _Id, value: _BaseModel, upsert: bool = False
     ) -> object:
         pass
 
     @abc.abstractmethod
-    def delete(self, _id: _Id, data_type: type) -> object:
+    def delete(self, data_type: type, _id: _Id) -> object:
+        pass
+
+    @abc.abstractmethod
+    def delete_many(self, data_type: type, *_ids: _Id) -> Sequence[object]:
         pass

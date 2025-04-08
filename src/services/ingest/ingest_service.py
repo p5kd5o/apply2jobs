@@ -64,6 +64,5 @@ class IngestService(_BaseService):
                 except Exception as exc:
                     LOGGER.warning("%s", exc)
                 else:
-                    for job in jobs:
-                        results.append(self.backend.create(job))
+                    results.extend(self.backend.create_many(models.Job, *jobs))
         return results

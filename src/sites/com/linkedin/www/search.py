@@ -3,7 +3,7 @@ from typing import Any
 
 from models import Job, JobSource
 from sites.base import _BaseSearch
-import utils.dicts
+import utils.mappings
 from . import SITE, SITE_SHORTNAME
 
 LOGGER = logging.getLogger(__name__)
@@ -16,8 +16,10 @@ class Search(_BaseSearch):
 
     def main(self, **search_kwgs) -> list[Job]:
         search_kwgs.setdefault("limit", self.DEFAULT_LIMIT)
-        results = self.client.search_jobs(**search_kwgs)
-        return [job for job in map(self._get_job, results) if job is not None]
+        return list(filter(
+            lambda v: v is not None,
+            map(self._get_job, self.client.search_jobs(**search_kwgs))
+        ))
 
     def _get_job(self, search_result: dict[str, Any]) -> Job:
         job_urn = search_result["trackingUrn"]
@@ -25,7 +27,10 @@ class Search(_BaseSearch):
         if job is None:
             return None
         try:
-            job_company_name = utils.dicts.find(job["companyDetails"], "name")
+            job_company_name = utils.mappings.find(
+                job["companyDetails"],
+                "name"
+            )
         except KeyError:
             job_company_name = ""
             LOGGER.warning(
@@ -49,7 +54,7 @@ class Search(_BaseSearch):
                 SITE, job_urn, job_company_name, job_title
             )
         try:
-            job_apply_url = utils.dicts.find(
+            job_apply_url = utils.mappings.find(
                 job["applyMethod"], "companyApplyUrl"
             )
         except KeyError:
