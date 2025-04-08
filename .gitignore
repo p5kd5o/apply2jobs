@@ -2,9 +2,19 @@
 # .gitignore
 ####################
 
-*.key
+# API keys
 /api-keys/
+
+# Config files
 /etc/config.yaml
+
+# Application logs
+/log
+*.log
+
+# Runtime data
+/data
+*.data
 
 ####################
 # Python.gitignore
