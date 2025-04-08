@@ -12,7 +12,7 @@ from .search_config import SearchConfig
 from .search_element_auth_config import SearchElementAuthConfig
 from .search_element_auth_credential_config import (
     SearchElementAuthCredentialConfig,
-    SearchElementAuthCredentialValueType
+    SearchElementAuthCredentialValueTypeEnum
 )
 from .search_element_auth_scheme_basic_config import (
     SearchElementAuthSchemeBasicConfig
