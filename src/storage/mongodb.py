@@ -33,11 +33,11 @@ class MongodbBackend(_BaseBackend):
         ]
 
     def read_all(self, data_type: type) -> Sequence[_BaseModel]:
-        return map(data_type, self.collection(data_type).find({}))
+        return map(data_type.from_dict, self.collection(data_type).find({}))
 
     def read(self, _id: ObjectId, data_type: type) -> _BaseModel | None:
         result = self.collection(data_type).find_one({"_id": _id})
-        return None if result is None else data_type(result)
+        return None if result is None else data_type.from_dict(result)
 
     def create(self, data: _BaseModel) -> InsertOneResult:
         return self.collection(type(data)).insert_one(data.model_dump())
