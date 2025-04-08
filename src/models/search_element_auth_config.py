@@ -1,9 +1,11 @@
 from enum import Enum
 from typing import Annotated
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator, Field
+from pydantic import AfterValidator, BeforeValidator, Field
 
 from utils.models import ensure_enum
+
+from .base_model import _BaseModel
 from .search_element_auth_scheme_basic_config import (
     SearchElementAuthSchemeBasicConfig
 )
@@ -18,7 +20,7 @@ class SearchElementAuthScheme(Enum):
 
 
 # pylint: disable=too-few-public-methods
-class SearchElementAuthConfig(BaseModel, extra="forbid"):
+class SearchElementAuthConfig(_BaseModel):
     scheme: Annotated[
         SearchElementAuthScheme,
         BeforeValidator(ensure_enum(SearchElementAuthScheme)),

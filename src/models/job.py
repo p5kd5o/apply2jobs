@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from pydantic import AfterValidator, BaseModel, HttpUrl
+from pydantic import AfterValidator, HttpUrl
 
-from models.job_source import JobSource
+from .base_model import _BaseModel
+from .job_source import JobSource
 
 
 # pylint: disable=too-few-public-methods
-class Job(BaseModel, extra="forbid"):
+class Job(_BaseModel):
     company_name: str
     title: str
     description: str

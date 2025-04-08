@@ -1,10 +1,12 @@
 from typing import Annotated
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator, Field
+from pydantic import AfterValidator, BeforeValidator, Field
+
+from .base_model import _BaseModel
 
 
 # pylint: disable=too-few-public-methods
-class ApplyPersonalLocationConfig(BaseModel, extra="forbid"):
+class ApplyPersonalLocationConfig(_BaseModel):
     street_address: Annotated[
         str | list[str], AfterValidator(
             lambda x: ", ".join(x) if isinstance(x, list) else x

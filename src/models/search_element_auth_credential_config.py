@@ -1,30 +1,39 @@
-from enum import Enum
-from typing import Annotated, Optional
+from enum import StrEnum
+from os import getenv
+from typing import Annotated, Literal, Optional, Self
 
-from pydantic import (
-    BaseModel, BeforeValidator, Field, SerializationInfo, field_serializer
-)
+from pydantic import BeforeValidator, Field, model_validator
 
 from utils.models import ensure_enum
 
+from .base_model import _BaseModel
 
-class SearchElementAuthCredentialValueType(Enum):
-    PLAINTEXT = 1
-    ENV = 2
+
+class SearchElementAuthCredentialValueTypeEnum(StrEnum):
+    PLAINTEXT = "PLAINTEXT"
+    ENV = "ENV"
+
+
+SearchElementAuthCredentialValueType = Literal[
+    SearchElementAuthCredentialValueTypeEnum.PLAINTEXT,
+    SearchElementAuthCredentialValueTypeEnum.ENV,
+]
 
 
 # pylint: disable=too-few-public-methods
-class SearchElementAuthCredentialConfig(BaseModel, extra="forbid"):
+class SearchElementAuthCredentialConfig(_BaseModel):
     value_type: Optional[Annotated[
-        SearchElementAuthCredentialValueType,
-        BeforeValidator(ensure_enum(SearchElementAuthCredentialValueType))
-    ]] = SearchElementAuthCredentialValueType.PLAINTEXT
+        SearchElementAuthCredentialValueTypeEnum,
+        BeforeValidator(ensure_enum(SearchElementAuthCredentialValueTypeEnum))
+    ]] = SearchElementAuthCredentialValueTypeEnum.PLAINTEXT
     value: str = Field(exclude=True)
 
-    @field_serializer("value_type")
-    def _serialize_value_type(
-        self,
-        value_type: SearchElementAuthCredentialValueType,
-        _: SerializationInfo
-    ) -> str:
-        return value_type.name
+    @model_validator(mode="after")
+    def load_value(self) -> Self:
+        if self.value_type == SearchElementAuthCredentialValueTypeEnum.ENV:
+            env_value = getenv(self.value)
+            if env_value is None:
+                raise ValueError(f"{self.value}: No such environment variable")
+            self.value = env_value
+        self.value_type = None
+        return self

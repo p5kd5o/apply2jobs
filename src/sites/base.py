@@ -1,6 +1,6 @@
 import abc
 import pathlib
-from typing import Callable, Any
+from typing import Any, Callable, Iterable
 
 from mistralai import Mistral
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -17,7 +17,7 @@ class _BaseSearch(abc.ABC):
         self.client = client
 
     @abc.abstractmethod
-    def main(self, **search_kwgs):
+    def main(self, **search_kwgs) -> list[Job]:
         pass
 
     def __call__(self, *args, **kwgs):
@@ -28,7 +28,7 @@ class _BaseSearch(abc.ABC):
 class _BaseSubmit(abc.ABC):
     webdriver: WebDriver
     mistral_client: Mistral
-    pre_submit_hook: list[Callable[[], Any]] = None
+    pre_submit_hook: Iterable[Callable[[], Any]] = None
 
     def __init__(
         self,

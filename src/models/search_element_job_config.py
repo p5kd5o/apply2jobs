@@ -1,14 +1,16 @@
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Annotated, Optional
 
 from pydantic import (
-    BaseModel, BeforeValidator, SerializationInfo, field_serializer
+    BeforeValidator, SerializationInfo, field_serializer
 )
 
 from utils.models import ensure_enum
 
+from .base_model import _BaseModel
 
-class SearchElementJobExperience(str, Enum):
+
+class SearchElementJobExperience(StrEnum):
     INTERNSHIP = "1"
     ENTRY_LEVEL = "2"
     ASSOCIATE = "3"
@@ -17,7 +19,7 @@ class SearchElementJobExperience(str, Enum):
     EXECUTIVE = "6"
 
 
-class SearchElementJobType(str, Enum):
+class SearchElementJobType(StrEnum):
     FULLTIME = "F"
     PARTTIME = "P"
     CONTRACT = "C"
@@ -27,14 +29,14 @@ class SearchElementJobType(str, Enum):
     OTHER = "O"
 
 
-class SearchElementJobRemote(str, Enum):
+class SearchElementJobRemote(StrEnum):
     ONSITE = "1"
     REMOTE = "2"
     HYBRID = "3"
 
 
 # pylint: disable=too-few-public-methods
-class SearchElementJobConfig(BaseModel, extra="forbid"):
+class SearchElementJobConfig(_BaseModel):
     keywords: Optional[str] = None
     experience: Optional[list[Annotated[
         SearchElementJobExperience,
@@ -51,26 +53,8 @@ class SearchElementJobConfig(BaseModel, extra="forbid"):
     location_name: Optional[str] = None
     distance: Optional[int] = None
 
-    @field_serializer("experience")
-    def _serialize_experience(
-        self,
-        experience: SearchElementJobExperience,
-        _: SerializationInfo
+    @field_serializer("experience", "job_type", "remote")
+    def _serialize_enum_list(
+        self, field_value: list[Enum], _: SerializationInfo
     ) -> list[str]:
-        return [e.name for e in experience]
-
-    @field_serializer("job_type")
-    def _serialize_job_type(
-        self,
-        job_type: SearchElementJobType,
-        _: SerializationInfo
-    ) -> list[str]:
-        return [e.name for e in job_type]
-
-    @field_serializer("remote")
-    def _serialize_remote(
-        self,
-        remote: SearchElementJobRemote,
-        _: SerializationInfo
-    ) -> list[str]:
-        return [e.name for e in remote]
+        return [element.value for element in field_value]
