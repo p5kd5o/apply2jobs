@@ -207,7 +207,6 @@ class Submit(_BaseSubmit):
                 resume_path=form_response_info.resume_path,
                 cover_letter_path=form_response_info.cover_letter_path
             )
-            question_input_element.send_keys(question_response)
             for keystroke in question_response:
                 question_input_element.send_keys(keystroke)
                 time.sleep(0.025)

@@ -7,6 +7,7 @@ import urllib.parse
 
 import mistralai
 import selenium.webdriver
+import selenium.common.exceptions
 
 import services
 import storage
@@ -27,7 +28,7 @@ def parse_args():
     parser.add_argument(
         "--config",
         "-c",
-        type=lambda x: pathlib.Path(x).absolute(),
+        type=lambda x: pathlib.Path(x).expanduser().absolute(),
         default=os.getenv(
             "APPLY2JOBS_CONFIG",
             "config.yaml"
@@ -36,7 +37,7 @@ def parse_args():
     )
     parser.add_argument(
         "--resume-pdf",
-        type=lambda x: pathlib.Path(x).absolute(),
+        type=lambda x: pathlib.Path(x).expanduser().absolute(),
         default=os.getenv(
             "APPLY2JOBS_RESUME_PDF",
             "resume.pdf"
@@ -45,7 +46,7 @@ def parse_args():
     )
     parser.add_argument(
         "--cover-letter-dir",
-        type=lambda x: pathlib.Path(x).absolute(),
+        type=lambda x: pathlib.Path(x).expanduser().absolute(),
         default=os.getenv(
             "APPLY2JOBS_COVER_LETTERS_DIR",
             "cover-letters/"
@@ -130,16 +131,25 @@ def main():
                     webdriver, mistral_client,
                     pre_submit_hook=pre_submit_hook
                 )
-                submitter(
+                results = submitter(
                     job,
                     main_config.apply.personal,
                     os.path.abspath(args.resume_pdf),
                     os.path.abspath(args.cover_letter_dir)
                 )
+                logging.info(
+                    "Results:\n%s",
+                    "\n".join(map(
+                        lambda k, v: f"{k}: <{'>, <'.join(map(str, v))}>",
+                        results.items()
+                    )))
             except Exception as exc:
                 logging.warning("%s", exc)
             finally:
-                webdriver.close()
+                try:
+                    webdriver.close()
+                except selenium.common.exceptions.InvalidSessionIdException as exc:
+                    logging.warning("%s", exc)
 
 
 if __name__ == "__main__":

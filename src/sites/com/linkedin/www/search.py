@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 # pylint: disable=too-few-public-methods
 class Search(_BaseSearch):
 
-    DEFAULT_LIMIT = 5
+    DEFAULT_LIMIT = 10
 
     def main(self, **search_kwgs) -> list[Job]:
         search_kwgs.setdefault("limit", self.DEFAULT_LIMIT)

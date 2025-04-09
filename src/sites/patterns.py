@@ -57,7 +57,7 @@ QUESTION_PATTERN_IMMIGRATION_SPONSORSHIP = re.compile(
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_AGREE = re.compile(
-    r"\bagree\b",
+    r"\b(acknowledge|agree)\b",
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_RESUME = re.compile(
