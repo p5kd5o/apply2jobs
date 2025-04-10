@@ -34,10 +34,10 @@ class SortedList[T: Any](list[T]):
     def __add__(self, other) -> Self:
         cls = type(self)
         new = cls(
+            self,
             key=self.key,
-            reverse=self.__is_reversed
+            reverse=self.is_reversed
         )
-        super(cls, new).extend(self)
         new.extend(other)
         return new
 
