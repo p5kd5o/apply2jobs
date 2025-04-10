@@ -45,7 +45,7 @@ class Submit(_BaseSubmit):
         cover_letter_dir = pathlib.Path(cover_letter_dir)
 
         LOGGER.info(
-            "Converting resume to Markdown: %s",
+            "Convert resume to Markdown: %s",
             resume_path
         )
         resume_md = pymupdf4llm.to_markdown(

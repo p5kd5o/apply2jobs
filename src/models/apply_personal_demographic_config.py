@@ -10,6 +10,7 @@ class ApplyPersonalDemographicConfig(BaseModel, extra="forbid"):
     immigration_sponsorship: bool
     sex: Optional[str] = ""
     gender: Optional[str] = ""
+    pronouns: Optional[str] = ""
     sexual_orientation: Optional[str] = ""
     transgender: Optional[bool] = None
     ethnicity: Optional[str] = ""

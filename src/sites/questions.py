@@ -59,12 +59,14 @@ def get_question_response(
             return "I agree"
         case patterns.QUESTION_PATTERN_GENDER_IDENTITY:
             return personal.demographic.gender
-        case patterns.QUESTION_PATTERN_SEXUAL_ORIENTATION:
-            return personal.demographic.sexual_orientation
         case patterns.QUESTION_PATTERN_SEX_GENDER:
             return personal.demographic.sex
+        case patterns.QUESTION_PATTERN_PRONOUNS:
+            return personal.demographic.pronouns
         case patterns.QUESTION_PATTERN_TRANSGENDER:
             return personal.demographic.transgender_status
+        case patterns.QUESTION_PATTERN_SEXUAL_ORIENTATION:
+            return personal.demographic.sexual_orientation
         case patterns.QUESTION_PATTERN_DISABILITY_STATUS:
             return personal.demographic.disability_status
         case patterns.QUESTION_PATTERN_VETERAN_STATUS:

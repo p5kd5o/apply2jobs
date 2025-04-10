@@ -2,16 +2,14 @@ import argparse
 import logging
 import os
 import pathlib
-import urllib
 import urllib.parse
 
 import mistralai
 import selenium.webdriver
-import selenium.common.exceptions
 
 import services
-import storage
 import sites
+import storage
 import utils.config
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "WARNING").upper()
@@ -28,16 +26,16 @@ def parse_args():
     parser.add_argument(
         "--config",
         "-c",
-        type=lambda x: pathlib.Path(x).expanduser().absolute(),
+        type=lambda x: pathlib.Path(x).expanduser(),
         default=os.getenv(
             "APPLY2JOBS_CONFIG",
             "config.yaml"
         ),
-        help="Application config file"
+        help="Config file"
     )
     parser.add_argument(
         "--resume-pdf",
-        type=lambda x: pathlib.Path(x).expanduser().absolute(),
+        type=lambda x: pathlib.Path(x).expanduser(),
         default=os.getenv(
             "APPLY2JOBS_RESUME_PDF",
             "resume.pdf"
@@ -46,12 +44,12 @@ def parse_args():
     )
     parser.add_argument(
         "--cover-letter-dir",
-        type=lambda x: pathlib.Path(x).expanduser().absolute(),
+        type=lambda x: pathlib.Path(x).expanduser(),
         default=os.getenv(
             "APPLY2JOBS_COVER_LETTERS_DIR",
-            "cover-letters/"
+            "coverletters/"
         ),
-        help="Cover letter directory"
+        help="Coverletter directory"
     )
     parser.add_argument(
         "--storage-backend",
@@ -83,8 +81,6 @@ def main():
 
     main_config = utils.config.load_config_file(args.config)
 
-    webdriver_options = selenium.webdriver.FirefoxOptions()
-
     mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
 
     if main_config.apply.confirm_before_submit:
@@ -110,46 +106,56 @@ def main():
     jobs_results = jobs_service.get_all()
 
     for job in jobs_results:
-        hostname = urllib.parse.urlparse(job.apply_url).hostname
         try:
-            submit_supporter = sites.SUBMIT_SUPPORTED[hostname]
+            hostname = urllib.parse.urlparse(job.apply_url).hostname
+        except Exception as exc:
+            logging.warning("%s", exc)
+            continue
+
+        try:
+            submitter_type: type[sites._BaseSubmit] = (
+                sites.SUBMIT_SUPPORTED[hostname]
+            )
         except KeyError:
             logging.warning(
-                "No ``submit'' support for site: %s",
+                "no ``submit'' support for site: %s",
                 hostname
             )
-        else:
-            logging.info(
-                "Submit: %s: %s: %s",
-                job.company_name, job.title, job.apply_url
+            continue
+
+        logging.info(
+            "SUBMIT: %s: %s: %s",
+            job.company_name, job.title, job.apply_url
+        )
+        try:
+            webdriver_options = selenium.webdriver.FirefoxOptions()
+            webdriver = selenium.webdriver.Firefox(
+                options=webdriver_options
             )
+            submitter = submitter_type(
+                webdriver,
+                mistral_client,
+                pre_submit_hook=pre_submit_hook
+            )
+            submit_results = submitter.main(
+                job,
+                main_config.apply.personal,
+                os.path.abspath(args.resume_pdf),
+                os.path.abspath(args.cover_letter_dir)
+            )
+            for xpath, errors in submit_results.items():
+                for err in filter(lambda e: e is not None, errors):
+                    logging.warning(
+                        "%s: %s: %s",
+                        job.apply_url, xpath, err
+                    )
+        except Exception as exc:
+            logging.warning("%s", exc)
+        finally:
             try:
-                webdriver = selenium.webdriver.Firefox(
-                    options=webdriver_options
-                )
-                submitter = submit_supporter(
-                    webdriver, mistral_client,
-                    pre_submit_hook=pre_submit_hook
-                )
-                results = submitter(
-                    job,
-                    main_config.apply.personal,
-                    os.path.abspath(args.resume_pdf),
-                    os.path.abspath(args.cover_letter_dir)
-                )
-                logging.info(
-                    "Results:\n%s",
-                    "\n".join(map(
-                        lambda k, v: f"{k}: <{'>, <'.join(map(str, v))}>",
-                        results.items()
-                    )))
+                webdriver.close()
             except Exception as exc:
                 logging.warning("%s", exc)
-            finally:
-                try:
-                    webdriver.close()
-                except selenium.common.exceptions.InvalidSessionIdException as exc:
-                    logging.warning("%s", exc)
 
 
 if __name__ == "__main__":

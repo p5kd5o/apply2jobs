@@ -49,13 +49,13 @@ class IngestService(_BaseService):
             )
         except KeyError:
             LOGGER.warning(
-                "No ``search'' support for site: %s",
+                "no ``search'' support for site: %s",
                 site.host
             )
         else:
             for job_search in site.jobs:
                 LOGGER.info(
-                    "Search: %s: %s",
+                    "SEARCH: %s: %s",
                     site.host,
                     job_search.model_dump_json()
                 )

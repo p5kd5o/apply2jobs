@@ -76,12 +76,16 @@ QUESTION_PATTERN_TRANSGENDER = re.compile(
     r"\btransgender\b",
     flags=re.IGNORECASE
 )
-QUESTION_PATTERN_SEXUAL_ORIENTATION = re.compile(
-    r"\bsexual\s+orientation\b",
-    flags=re.IGNORECASE
-)
 QUESTION_PATTERN_SEX_GENDER = re.compile(
     r"\b(sex|gender)\b",
+    flags=re.IGNORECASE
+)
+QUESTION_PATTERN_PRONOUNS = re.compile(
+    r"\bpronouns\b",
+    flags=re.IGNORECASE
+)
+QUESTION_PATTERN_SEXUAL_ORIENTATION = re.compile(
+    r"\bsexual\s+orientation\b",
     flags=re.IGNORECASE
 )
 QUESTION_PATTERN_VETERAN_STATUS = re.compile(
