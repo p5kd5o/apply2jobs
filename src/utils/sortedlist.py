@@ -8,11 +8,11 @@ from utils.types import SupportsRichComparison
 class SortedList[T: Any](list[T]):
 
     __key: Callable[[T], SupportsRichComparison[T]]
-    __is_reversed: bool = False
+    __is_reversed: bool
 
     def __init__(
         self,
-        iterable: Iterable = (),
+        iterable: Iterable[T] = (),
         key: Callable[[T], SupportsRichComparison[T]] = None,
         reverse: bool = False
     ):
@@ -65,21 +65,20 @@ class SortedList[T: Any](list[T]):
     ) -> int:
         start = max(start, 0)
         stop = min(stop, len(self))
-        index = (stop - start) // 2
+        index = (stop - start) >> 1
         value_key = self.key(value)
-        index_key = None
         is_before = gt if self.is_reversed else lt
         while start < stop:
-            if index < len(self):
-                index_key = self.key(self[index])
+            index_key = self.key(self[index])
             if value_key == index_key:
                 return index
             if is_before(value_key, index_key):
                 stop = index
-                index -= (stop - start + 1) // 2
+                index -= (stop - start + 1) >> 1
             else:
-                start = index + 1
-                index += (stop - start) // 2 + 1
+                start = index
+                index += (stop - start + 1) >> 1
+                start += 1
         if missing_ok:
             return index
         raise ValueError(f"{value} (key: {value_key}) is not in list")
@@ -94,7 +93,7 @@ class SortedList[T: Any](list[T]):
             value
         )
 
-    def extend(self, iterable: Iterable) -> None:
+    def extend(self, iterable: Iterable[T]) -> None:
         for value in iterable:
             self.append(value)
 
