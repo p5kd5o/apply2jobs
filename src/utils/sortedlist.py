@@ -16,10 +16,8 @@ class SortedList[T: Any](list[T]):
         key: Callable[[T], SupportsRichComparison[T]] = None,
         reverse: bool = False
     ):
-        super().__init__()
-        self.__key = key if key is not None else lambda x: x
-        self.__is_reversed = reverse
-        self.extend(iterable)
+        super().__init__(iterable)
+        self.sort(key=key, reverse=reverse)
 
     @property
     def key(self) -> Callable[[T], SupportsRichComparison[T]]:
@@ -137,7 +135,8 @@ class SortedList[T: Any](list[T]):
         reverse: bool = False
     ) -> None:
         super().sort(key=key, reverse=reverse)
-        self.__key = key
+        if key is not None:
+            self.__key = key
         self.__is_reversed = reverse
 
     def reverse(self) -> None:
