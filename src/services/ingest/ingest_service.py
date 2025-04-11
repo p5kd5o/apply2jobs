@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 from logging import getLogger
 from typing import Sequence
 
@@ -8,6 +9,8 @@ import storage
 from services.base_service import _BaseService
 
 LOGGER = getLogger(__name__)
+
+DT_UTC_MIN = datetime(1, 1, 1, 0, 0, 0, tzinfo=UTC)
 
 
 class IngestService(_BaseService):
@@ -42,27 +45,82 @@ class IngestService(_BaseService):
         return {site.host: self.ingest_site(site) for site in site_config}
 
     def ingest_site(self, site: models.SearchElementConfig) -> list:
-        results = []
+        stopped_ingests = filter(
+            lambda x: getattr(x, "stopped_time", None) is not None,
+            self.backend.find(models.Ingest, {"site": site.host}),
+        )
+        previous_ingest = max(
+            stopped_ingests,
+            key=lambda x: getattr(x, "stopped_time", DT_UTC_MIN),
+            default=None
+        )
+        previous_ingest_dt = getattr(
+            previous_ingest,
+            "stopped_time",
+            datetime.now(tz=UTC) - timedelta(days=1)
+        )
+        ingest = models.Ingest(
+            status=models.IngestStatus.PENDING,
+            scheduled_time=datetime.now(tz=UTC),
+            site=site.host
+        )
+        ingest_id = self.backend.create(ingest)
+
+        jobs = []
         try:
-            searcher = sites.SEARCH_SUPPORTED[site.host](
-                self.__clients[site.host]
+            searcher_type: type[sites._BaseSearch] = (
+                sites.SEARCH_SUPPORTED[site.host]
             )
         except KeyError:
             LOGGER.warning(
                 "no ``search'' support for site: %s",
                 site.host
             )
+            ingest = models.Ingest(
+                status=models.IngestStatus.FAILED,
+                scheduled_time=ingest.scheduled_time,
+                stopped_time=datetime.now(tz=UTC),
+                n_processed=0,
+                errors=["no ``search'' support for site"],
+                site=site.host
+            )
+            self.backend.update(ingest_id, ingest)
         else:
+            ingest = models.Ingest(
+                status=models.IngestStatus.IN_PROGRESS,
+                scheduled_time=ingest.scheduled_time,
+                started_time=datetime.now(tz=UTC),
+                site=site.host
+            )
+            self.backend.update(ingest_id, ingest)
+            errors = []
             for job_search in site.jobs:
                 LOGGER.info(
-                    "SEARCH: %s: %s",
+                    "search: %s: %s",
                     site.host,
                     job_search.model_dump_json()
                 )
                 try:
-                    jobs = searcher(**job_search.model_dump())
+                    searcher = searcher_type(self.__clients[site.host])
+                    listed_within = datetime.now(tz=UTC) - previous_ingest_dt
+                    search_results = searcher.main(
+                        **job_search.model_dump(),
+                        listed_at=int(listed_within.total_seconds() // 1)
+                    )
+                    jobs.extend(search_results)
                 except Exception as exc:
                     LOGGER.warning("%s", exc)
-                else:
-                    results.extend(self.backend.create_many(models.Job, *jobs))
-        return results
+                    errors.append(exc)
+
+            ingest = models.Ingest(
+                status=models.IngestStatus.COMPLETED,
+                scheduled_time=ingest.scheduled_time,
+                started_time=ingest.started_time,
+                stopped_time=datetime.now(tz=UTC),
+                n_processed=len(jobs),
+                errors=list(map(str, errors)),
+                site=site.host
+            )
+            self.backend.update(ingest_id, ingest)
+
+        return self.backend.create_many(models.Job, *jobs)
