@@ -124,7 +124,7 @@ def main():
             continue
 
         logging.info(
-            "SUBMIT: %s: %s: %s",
+            "submit: %s: %s: %s",
             job.company_name, job.title, job.apply_url
         )
         try:
