@@ -98,7 +98,8 @@ class FilesystemBackend(_BaseBackend):
         except FileNotFoundError:
             filedata = []
         target = str(_id)
-        for index in range(len(filedata)):
+        index = 0
+        while index < len(filedata):
             if filedata[index].get("_id") == target:
                 new_data = {**value.model_dump(mode="json"), "_id": str(_id)}
                 filedata[index] = new_data
@@ -108,6 +109,7 @@ class FilesystemBackend(_BaseBackend):
                     did_upsert=False,
                     upserted_id=None
                 )
+            index += 1
         if upsert:
             return UpdateResult(
                 matched_count=0,

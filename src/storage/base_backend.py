@@ -1,5 +1,5 @@
 import abc
-from typing import Iterable, Sequence
+from typing import Iterable
 
 from models.base_model import _BaseModel
 from utils.strcase import CaseEnum, CaseType
