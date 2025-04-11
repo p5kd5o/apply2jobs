@@ -53,6 +53,7 @@ class SortedList[T: Any](list[T]):
         return True
 
     def __setitem__(self, index, value) -> None:
+        del self[index]
         self.insert(index, value)
 
     def __binary_search(
