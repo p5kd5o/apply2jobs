@@ -2,12 +2,11 @@ import json
 import pathlib
 from urllib.parse import unquote, urlparse
 from uuid import UUID, uuid4
-from typing import Sequence
+from typing import Iterable
 
 from models.base_model import _BaseModel
-from utils.mappings import filter_subset
-from utils.sortedlist import SortedList
 from utils.strcase import CasedStr, CaseType
+from utils.mappings import filter_subset
 from .base_backend import _BaseBackend
 
 
@@ -34,31 +33,20 @@ class FilesystemBackend(_BaseBackend):
     def create(self, value: _BaseModel) -> UUID:
         filepath = self.filepath(type(value))
         try:
-            filedata = SortedList(
-                json.loads(filepath.read_text()),
-                key=lambda x: x["_id"]
-            )
+            filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
-            filedata = SortedList(
-                key=lambda x: x["_id"]
-            )
+            filedata = []
         new_uuid = uuid4()
         new_data = {**value.model_dump(mode="json"), "_id": str(new_uuid)}
-        filedata.append(new_data)
-        filepath.write_text(json.dumps(filedata))
+        filepath.write_text(json.dumps([*filedata, new_data]))
         return new_uuid
 
     def create_many(self, data_type: type, *values: _BaseModel) -> list[UUID]:
         filepath = self.filepath(data_type)
         try:
-            filedata = SortedList(
-                json.loads(filepath.read_text()),
-                key=lambda x: x["_id"]
-            )
+            filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
-            filedata = SortedList(
-                key=lambda x: x["_id"]
-            )
+            filedata = []
         uuids = []
         for value in values:
             new_uuid = uuid4()
@@ -71,32 +59,23 @@ class FilesystemBackend(_BaseBackend):
     def get(self, data_type: type, _id: UUID) -> _BaseModel | None:
         filepath = self.filepath(data_type)
         try:
-            filedata = SortedList(
-                json.loads(filepath.read_text()),
-                key=lambda x: x["_id"]
-            )
+            filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
-            filedata = SortedList(
-                key=lambda x: x["_id"]
-            )
-        try:
-            return data_type.from_dict(filedata[filedata.index(str(_id))])
-        except ValueError:
-            return None
+            filedata = []
+        target = str(_id)
+        for value in filedata:
+            if value.get("_id") == target:
+                return data_type.from_dict(value)
+        return None
 
     def find(
         self, data_type: type, constraints: dict[str, object]
-    ) -> Sequence[_BaseModel]:
+    ) -> Iterable[_BaseModel]:
         filepath = self.filepath(data_type)
         try:
-            filedata = SortedList(
-                json.loads(filepath.read_text()),
-                key=lambda x: x["_id"]
-            )
+            filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
-            filedata = SortedList(
-                key=lambda x: x["_id"]
-            )
+            filedata = []
         matches = []
         for value in filedata:
             if constraints == filter_subset(value, constraints.keys()):
@@ -108,59 +87,48 @@ class FilesystemBackend(_BaseBackend):
     ) -> UUID | None:
         filepath = self.filepath(type(value))
         try:
-            filedata = SortedList(
-                json.loads(filepath.read_text()),
-                key=lambda x: x["_id"]
-            )
+            filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
-            filedata = SortedList(
-                key=lambda x: x["_id"]
-            )
-        try:
-            del filedata[filedata.index(str(_id))]
-        except ValueError:
-            return self.create(value) if upsert else None
-        new_data = {**value.model_dump(mode="json"), "_id": str(_id)}
-        filedata.append(new_data)
-        filepath.write_text(json.dumps(filedata))
-        return _id
+            filedata = []
+        target = str(_id)
+        for index, element in enumerate(filedata):
+            if element.get("_id") == target:
+                new_data = {**value.model_dump(mode="json"), "_id": str(_id)}
+                filepath.write_text(json.dumps([
+                    *filedata[:index], new_data, *filedata[index+1:]
+                ]))
+                return _id
+        if upsert:
+            return self.create(value)
+        return None
 
     def delete(self, data_type: type, _id: UUID) -> UUID | None:
         filepath = self.filepath(data_type)
         try:
-            filedata = SortedList(
-                json.loads(filepath.read_text()),
-                key=lambda x: x["_id"]
-            )
+            filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
-            filedata = SortedList(
-                key=lambda x: x["_id"]
-            )
-        try:
-            del filedata[filedata.index(str(_id))]
-        except ValueError:
-            return None
-        filepath.write_text(json.dumps(filedata))
-        return _id
+            filedata = []
+        for index, element in enumerate(filedata):
+            if element.get("_id") == str(_id):
+                filepath.write_text(json.dumps([
+                    *filedata[:index], *filedata[index+1:]
+                ]))
+                return _id
+        return None
 
     def delete_many(self, data_type: type, *_ids: UUID) -> list[UUID]:
         filepath = self.filepath(data_type)
         try:
-            filedata = SortedList(
-                json.loads(filepath.read_text()),
-                key=lambda x: x["_id"]
-            )
+            filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
-            filedata = SortedList(
-                key=lambda x: x["_id"]
-            )
+            filedata = []
+        new_filedata = []
+        targets = set(map(str, _ids))
         deleted = []
-        for _id in _ids:
-            try:
-                del filedata[filedata.index(str(_id))]
-            except ValueError:
-                pass
+        for element in filedata:
+            if element.get("_id") in targets:
+                deleted.append(element["_id"])
             else:
-                deleted.append(_id)
-        filepath.write_text(json.dumps(filedata))
-        return deleted
+                new_filedata.append(element)
+        filepath.write_text(json.dumps(new_filedata))
+        return list(map(UUID, deleted))

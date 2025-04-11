@@ -1,5 +1,5 @@
 import abc
-from typing import Sequence
+from typing import Iterable, Sequence
 
 from models.base_model import _BaseModel
 from utils.strcase import CaseEnum, CaseType
@@ -53,7 +53,7 @@ class _BaseBackend(abc.ABC):
     @abc.abstractmethod
     def find(
         self, data_type: type, constraints: dict[str, object]
-    ) -> Sequence[_BaseModel]:
+    ) -> Iterable[_BaseModel]:
         pass
 
     @abc.abstractmethod
