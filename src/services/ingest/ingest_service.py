@@ -45,13 +45,18 @@ class IngestService(_BaseService):
         return {site.host: self.ingest_site(site) for site in site_config}
 
     def ingest_site(self, site: models.SearchElementConfig) -> list:
-        stopped_ingests = filter(
-            lambda x: getattr(x, "stopped_time", None) is not None,
-            self.backend.find(models.Ingest, {"site": site.host}),
+        completed_ingests = self.backend.find(
+            models.Ingest,
+            {
+                "site": site.host,
+                "status": models.IngestStatus.COMPLETED
+            }
         )
         previous_ingest = max(
-            stopped_ingests,
-            key=lambda x: getattr(x, "stopped_time", DT_UTC_MIN),
+            completed_ingests,
+            key=lambda x:
+                x.stopped_time if isinstance(x.stopped_time, datetime)
+                else DT_UTC_MIN,
             default=None
         )
         previous_ingest_dt = getattr(
@@ -64,7 +69,7 @@ class IngestService(_BaseService):
             scheduled_time=datetime.now(tz=UTC),
             site=site.host
         )
-        ingest_id = self.backend.create(ingest)
+        ingest_id = self.backend.create(ingest).created_id
 
         jobs = []
         try:

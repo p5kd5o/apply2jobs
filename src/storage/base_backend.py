@@ -3,7 +3,10 @@ from typing import Iterable, Sequence
 
 from models.base_model import _BaseModel
 from utils.strcase import CaseEnum, CaseType
-from utils.types.id import _Id
+from utils.types import _Id
+from .results import (
+    CreateOneResult, CreateManyResult, UpdateResult, DeleteResult
+)
 
 
 class _BaseBackend(abc.ABC):
@@ -37,13 +40,13 @@ class _BaseBackend(abc.ABC):
             )
 
     @abc.abstractmethod
-    def create(self, value: _BaseModel) -> object:
+    def create(self, value: _BaseModel) -> CreateOneResult:
         pass
 
     @abc.abstractmethod
     def create_many(
         self, data_type: type, *values: _BaseModel
-    ) -> Sequence[object]:
+    ) -> CreateManyResult:
         pass
 
     @abc.abstractmethod
@@ -59,13 +62,13 @@ class _BaseBackend(abc.ABC):
     @abc.abstractmethod
     def update(
         self, _id: _Id, value: _BaseModel, upsert: bool = False
-    ) -> object:
+    ) -> UpdateResult:
         pass
 
     @abc.abstractmethod
-    def delete(self, data_type: type, _id: _Id) -> object:
+    def delete(self, data_type: type, _id: _Id) -> DeleteResult:
         pass
 
     @abc.abstractmethod
-    def delete_many(self, data_type: type, *_ids: _Id) -> Sequence[object]:
+    def delete_many(self, data_type: type, *_ids: _Id) -> DeleteResult:
         pass

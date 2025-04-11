@@ -8,6 +8,9 @@ from models.base_model import _BaseModel
 from utils.strcase import CasedStr, CaseType
 from utils.mappings import filter_subset
 from .base_backend import _BaseBackend
+from .results import (
+    CreateOneResult, CreateManyResult, UpdateResult, DeleteResult
+)
 
 
 class FilesystemBackend(_BaseBackend):
@@ -30,7 +33,7 @@ class FilesystemBackend(_BaseBackend):
             CasedStr(data_type.__name__).convert(to_case=self.table_case)
         ).with_suffix(".json")
 
-    def create(self, value: _BaseModel) -> UUID:
+    def create(self, value: _BaseModel) -> CreateOneResult:
         filepath = self.filepath(type(value))
         try:
             filedata = json.loads(filepath.read_text())
@@ -39,9 +42,11 @@ class FilesystemBackend(_BaseBackend):
         new_uuid = uuid4()
         new_data = {**value.model_dump(mode="json"), "_id": str(new_uuid)}
         filepath.write_text(json.dumps([*filedata, new_data]))
-        return new_uuid
+        return CreateOneResult(created_id=new_uuid)
 
-    def create_many(self, data_type: type, *values: _BaseModel) -> list[UUID]:
+    def create_many(
+        self, data_type: type, *values: _BaseModel
+    ) -> CreateManyResult:
         filepath = self.filepath(data_type)
         try:
             filedata = json.loads(filepath.read_text())
@@ -54,7 +59,9 @@ class FilesystemBackend(_BaseBackend):
             uuids.append(new_uuid)
             filedata.append(new_data)
         filepath.write_text(json.dumps(filedata))
-        return uuids
+        return CreateManyResult(
+            created_count=len(uuids), created_ids=uuids
+        )
 
     def get(self, data_type: type, _id: UUID) -> _BaseModel | None:
         filepath = self.filepath(data_type)
@@ -84,25 +91,36 @@ class FilesystemBackend(_BaseBackend):
 
     def update(
         self, _id: UUID, value: _BaseModel, upsert: bool = False
-    ) -> UUID | None:
+    ) -> UpdateResult:
         filepath = self.filepath(type(value))
         try:
             filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
             filedata = []
         target = str(_id)
-        for index, element in enumerate(filedata):
-            if element.get("_id") == target:
+        for index in range(len(filedata)):
+            if filedata[index].get("_id") == target:
                 new_data = {**value.model_dump(mode="json"), "_id": str(_id)}
-                filepath.write_text(json.dumps([
-                    *filedata[:index], new_data, *filedata[index+1:]
-                ]))
-                return _id
+                filedata[index] = new_data
+                filepath.write_text(json.dumps(filedata))
+                return UpdateResult(
+                    matched_count=1,
+                    did_upsert=False,
+                    upserted_id=None
+                )
         if upsert:
-            return self.create(value)
-        return None
+            return UpdateResult(
+                matched_count=0,
+                did_upsert=True,
+                upserted_id=self.create(value).created_id
+            )
+        return UpdateResult(
+            matched_count=0,
+            did_upsert=False,
+            upserted_id=None
+        )
 
-    def delete(self, data_type: type, _id: UUID) -> UUID | None:
+    def delete(self, data_type: type, _id: UUID) -> DeleteResult:
         filepath = self.filepath(data_type)
         try:
             filedata = json.loads(filepath.read_text())
@@ -113,10 +131,10 @@ class FilesystemBackend(_BaseBackend):
                 filepath.write_text(json.dumps([
                     *filedata[:index], *filedata[index+1:]
                 ]))
-                return _id
-        return None
+                return DeleteResult(deleted_count=1)
+        return DeleteResult(deleted_count=0)
 
-    def delete_many(self, data_type: type, *_ids: UUID) -> list[UUID]:
+    def delete_many(self, data_type: type, *_ids: UUID) -> DeleteResult:
         filepath = self.filepath(data_type)
         try:
             filedata = json.loads(filepath.read_text())
@@ -124,11 +142,11 @@ class FilesystemBackend(_BaseBackend):
             filedata = []
         new_filedata = []
         targets = set(map(str, _ids))
-        deleted = []
+        deleted_count = 0
         for element in filedata:
             if element.get("_id") in targets:
-                deleted.append(element["_id"])
+                deleted_count += 1
             else:
                 new_filedata.append(element)
         filepath.write_text(json.dumps(new_filedata))
-        return list(map(UUID, deleted))
+        return DeleteResult(deleted_count=deleted_count)
