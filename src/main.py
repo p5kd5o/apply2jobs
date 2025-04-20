@@ -83,7 +83,7 @@ def main():
 
     mistral_client = mistralai.Mistral(api_key=MISTRAL_API_KEY)
 
-    if main_config.apply.confirm_before_submit:
+    if main_config.submit.confirm_before_submit:
         pre_submit_hook = [lambda: input("<ENTER> to Continue...")]
     else:
         pre_submit_hook = None
@@ -139,7 +139,7 @@ def main():
             )
             submit_results = submitter.main(
                 job,
-                main_config.apply.personal,
+                main_config.submit.personal,
                 os.path.abspath(args.resume_pdf),
                 os.path.abspath(args.cover_letter_dir)
             )

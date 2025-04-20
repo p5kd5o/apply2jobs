@@ -2,7 +2,7 @@ from typing import Annotated
 
 from pydantic import AfterValidator, HttpUrl
 
-from .base_model import _BaseModel
+from models.base_model import _BaseModel
 from .job_source import JobSource
 
 

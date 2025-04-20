@@ -7,7 +7,7 @@ from pydantic import (
 
 from utils.models import ensure_enum
 
-from .base_model import _BaseModel
+from models.base_model import _BaseModel
 
 
 class SearchElementJobExperience(StrEnum):

@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 from pydantic import AfterValidator, EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
-from .base_model import _BaseModel
+from models.base_model import _BaseModel
 
 
 # pylint: disable=too-few-public-methods

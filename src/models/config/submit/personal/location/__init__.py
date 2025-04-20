@@ -1,0 +1,1 @@
+from .submit_personal_location_config import SubmitPersonalLocationConfig

@@ -5,7 +5,7 @@ from typing import Any, Callable, Iterable
 from mistralai import Mistral
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from models import Job, ApplyPersonalConfig
+from models import Job, SubmitPersonalConfig
 
 
 # pylint: disable=too-few-public-methods
@@ -48,7 +48,7 @@ class _BaseSubmit(abc.ABC):
     def main(
         self,
         job: Job,
-        personal: ApplyPersonalConfig,
+        personal: SubmitPersonalConfig,
         resume_path: str | pathlib.Path,
         cover_letter_dir: str | pathlib.Path
     ) -> dict[str, list[Exception | None]]:

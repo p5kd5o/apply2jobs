@@ -19,7 +19,7 @@ search:
       remote:
       - ONSITE
       location_name: Japan
-apply:
+submit:
   confirm_before_submit: true
   personal:
     first_name: Satoru

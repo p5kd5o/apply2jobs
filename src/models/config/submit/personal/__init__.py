@@ -1,0 +1,5 @@
+from .submit_personal_config import SubmitPersonalConfig
+from .contact import SubmitPersonalContactConfig
+from .demographic import SubmitPersonalDemographicConfig
+from .location import SubmitPersonalLocationConfig
+from .social import SubmitPersonalSocialConfig

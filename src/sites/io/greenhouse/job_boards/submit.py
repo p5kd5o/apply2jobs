@@ -10,7 +10,7 @@ import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from models import ApplyPersonalConfig, Job
+from models import SubmitPersonalConfig, Job
 from sites.base import _BaseSubmit
 from sites.questions import get_question_response
 from utils import cover_letters, pdf, xpath
@@ -22,7 +22,7 @@ LOGGER = logging.getLogger(__name__)
 @dataclasses.dataclass
 class FormResponseInfo:
     job: Job
-    personal: ApplyPersonalConfig
+    personal: SubmitPersonalConfig
     resume_path: str | pathlib.Path
     cover_letter_path: str | pathlib.Path
 
@@ -37,7 +37,7 @@ class Submit(_BaseSubmit):
     def main(
         self,
         job: Job,
-        personal: ApplyPersonalConfig,
+        personal: SubmitPersonalConfig,
         resume_path: str | pathlib.Path,
         cover_letter_dir: str | pathlib.Path
     ) -> dict[str, list[Exception | None]]:

@@ -1,12 +1,12 @@
 from utils.types.id import _Id
 
-from .base_model import _BaseModel
-from .apply_config import ApplyConfig
-from .search_config import SearchConfig
+from models.base_model import _BaseModel
+from .search import SearchConfig
+from .submit import SubmitConfig
 
 
 # pylint: disable=too-few-public-methods
 class Config(_BaseModel):
     search: SearchConfig
-    apply: ApplyConfig
+    submit: SubmitConfig
     _user_id: _Id | None = None

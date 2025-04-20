@@ -3,7 +3,7 @@ import re
 
 from selenium.webdriver.common.keys import Keys
 
-from models import ApplyPersonalConfig, JobSource
+from models import SubmitPersonalConfig, JobSource
 from utils import matching
 from . import patterns
 
@@ -11,7 +11,7 @@ from . import patterns
 # pylint: disable=too-many-return-statements
 def get_question_response(
     question: str,
-    personal: ApplyPersonalConfig,
+    personal: SubmitPersonalConfig,
     job_source: JobSource,
     resume_path: str | pathlib.Path,
     cover_letter_path: str | pathlib.Path

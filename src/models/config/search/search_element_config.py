@@ -1,6 +1,6 @@
-from .base_model import _BaseModel
-from .search_element_auth_config import SearchElementAuthConfig
-from .search_element_job_config import SearchElementJobConfig
+from models.base_model import _BaseModel
+from .auth import SearchElementAuthConfig
+from .jobs import SearchElementJobConfig
 
 
 # pylint: disable=too-few-public-methods

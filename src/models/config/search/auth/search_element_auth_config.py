@@ -5,12 +5,10 @@ from pydantic import AfterValidator, BeforeValidator, Field
 
 from utils.models import ensure_enum
 
-from .base_model import _BaseModel
-from .search_element_auth_scheme_basic_config import (
-    SearchElementAuthSchemeBasicConfig
-)
-from .search_element_auth_scheme_oauth_config import (
-    SearchElementAuthSchemeOauthConfig
+from models.base_model import _BaseModel
+from .scheme import (
+    SearchElementAuthSchemeBasicConfig,
+    SearchElementAuthSchemeOauthConfig,
 )
 
 

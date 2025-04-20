@@ -1,10 +1,10 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from models.base_model import _BaseModel
 
 
 # pylint: disable=too-few-public-methods
-class ApplyPersonalDemographicConfig(BaseModel, extra="forbid"):
+class SubmitPersonalDemographicConfig(_BaseModel):
     authorized_to_work: bool
     citizen: bool
     immigration_sponsorship: bool

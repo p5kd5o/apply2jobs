@@ -1,4 +1,4 @@
-from .base_model import _BaseModel
+from models.base_model import _BaseModel
 from .search_element_config import SearchElementConfig
 
 

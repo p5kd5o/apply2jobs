@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import AwareDatetime, NonNegativeInt
 
-from .base_model import _BaseModel
+from models.base_model import _BaseModel
 
 
 class IngestStatus(StrEnum):
