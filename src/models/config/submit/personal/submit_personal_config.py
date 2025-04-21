@@ -2,13 +2,14 @@ from typing import Optional
 
 from pydantic import Field
 
+from utils import patterns
+from models.base_model import _BaseModel
+
 from .contact import SubmitPersonalContactConfig
 from .demographic import SubmitPersonalDemographicConfig
 from .location import SubmitPersonalLocationConfig
 from .social import SubmitPersonalSocialConfig
 
-from models.base_model import _BaseModel
-from utils import patterns
 
 
 # pylint: disable=too-few-public-methods

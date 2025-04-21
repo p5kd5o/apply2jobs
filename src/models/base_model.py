@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Mapping
 
 from pydantic import BaseModel
 
@@ -14,5 +14,5 @@ class _BaseModel(BaseModel, extra="forbid"):
         self._id = _id
 
     @classmethod
-    def from_dict(cls, value) -> Self:
+    def from_dict(cls, value: Mapping) -> Self:
         return cls(**value)

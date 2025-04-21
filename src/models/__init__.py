@@ -1,4 +1,4 @@
-from .users import User
+from .users import User, Password
 from .jobs import Job, JobSource
 from .ingest import Ingest, IngestStatus
 from .config import (
