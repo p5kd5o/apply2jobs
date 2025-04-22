@@ -11,7 +11,6 @@ from .location import SubmitPersonalLocationConfig
 from .social import SubmitPersonalSocialConfig
 
 
-
 # pylint: disable=too-few-public-methods
 class SubmitPersonalConfig(_BaseModel):
     first_name: str

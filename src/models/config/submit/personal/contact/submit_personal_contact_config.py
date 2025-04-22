@@ -5,6 +5,7 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from models.base_model import _BaseModel
 
+
 # pylint: disable=too-few-public-methods
 class SubmitPersonalContactConfig(_BaseModel):
     phone_number: Annotated[PhoneNumber, AfterValidator(str)]

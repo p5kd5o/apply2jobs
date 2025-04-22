@@ -3,9 +3,9 @@ from hashlib import scrypt
 from os import urandom
 from secrets import compare_digest
 
-N_ITERATIONS=2048
-R_BLOCK_SIZE=8
-P_PARALLELISM=1
+N_ITERATIONS = 2048
+R_BLOCK_SIZE = 8
+P_PARALLELISM = 1
 SALT_SIZE = 24
 
 PasswordHash = namedtuple("PasswordHash", ["digest", "salt"])
@@ -26,7 +26,9 @@ def hash_password(password: str | bytes) -> tuple[bytes, bytes]:
     )
 
 
-def verify_password(to_check: str | bytes, password_hash: PasswordHash) -> bool:
+def verify_password(
+    to_check: str | bytes, password_hash: PasswordHash
+) -> bool:
     if isinstance(to_check, bytes):
         to_check_b = to_check
     else:
