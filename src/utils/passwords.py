@@ -11,7 +11,7 @@ SALT_SIZE = 24
 PasswordHash = namedtuple("PasswordHash", ["digest", "salt"])
 
 
-def hash_password(password: str | bytes) -> tuple[bytes, bytes]:
+def hash_password(password: str | bytes) -> PasswordHash[bytes, bytes]:
     if isinstance(password, bytes):
         password_b = password
     else:
