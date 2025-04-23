@@ -1,5 +1,5 @@
 from enum import Enum, StrEnum
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 from pydantic import (
     BeforeValidator, SerializationInfo, field_serializer
@@ -56,5 +56,5 @@ class SearchElementJobConfig(_BaseModel):
     @field_serializer("experience", "job_type", "remote")
     def _serialize_enum_list(
         self, field_value: list[Enum], _: SerializationInfo
-    ) -> list[str]:
+    ) -> list[Any]:
         return [element.value for element in field_value]

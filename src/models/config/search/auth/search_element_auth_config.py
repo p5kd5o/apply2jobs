@@ -1,7 +1,9 @@
-from enum import Enum
-from typing import Annotated
+from enum import Enum, StrEnum
+from typing import Annotated, Any
 
-from pydantic import AfterValidator, BeforeValidator, Field
+from pydantic import (
+    BeforeValidator, Field, SerializationInfo, field_serializer
+)
 
 from utils.models import ensure_enum
 
@@ -12,19 +14,22 @@ from .scheme import (
 )
 
 
-class SearchElementAuthScheme(Enum):
-    BASIC = 1
-    OAUTH = 2
+class SearchElementAuthScheme(StrEnum):
+    BASIC = "basic"
+    OAUTH = "oauth"
 
 
 # pylint: disable=too-few-public-methods
 class SearchElementAuthConfig(_BaseModel):
     scheme: Annotated[
         SearchElementAuthScheme,
-        BeforeValidator(ensure_enum(SearchElementAuthScheme)),
-        AfterValidator(lambda e: e.value)
+        BeforeValidator(ensure_enum(SearchElementAuthScheme))
     ]
     credentials: (
         SearchElementAuthSchemeBasicConfig |
         SearchElementAuthSchemeOauthConfig
     ) = Field(exclude=True)
+
+    @field_serializer("scheme")
+    def _serialize_enum(self, field_value: Enum, _: SerializationInfo) -> Any:
+        return field_value.value
