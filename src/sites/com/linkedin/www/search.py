@@ -11,20 +11,18 @@ LOGGER = logging.getLogger(__name__)
 
 # pylint: disable=too-few-public-methods
 class Search(_BaseSearch):
-
-    DEFAULT_LIMIT = 10
+    DEFAULT_LIMIT: int = 10
 
     def main(self, **search_kwgs) -> list[Job]:
         search_kwgs.setdefault("limit", self.DEFAULT_LIMIT)
-        return list(filter(
-            lambda v: v is not None,
-            map(self._get_job, self.client.search_jobs(**search_kwgs))
-        ))
+        jobs = map(self._get_job, self.client.search_jobs(**search_kwgs))
+        return [job for job in jobs if job is not None]
 
     def _get_job(self, search_result: dict[str, Any]) -> Job:
         job_urn = search_result["trackingUrn"]
         job = self.client.get_job(job_urn.split(':')[-1])
         if job is None:
+            LOGGER.warning("Failed to get job: %s", job_urn)
             return None
         try:
             job_company_name = utils.mappings.find(
@@ -58,7 +56,7 @@ class Search(_BaseSearch):
                 job["applyMethod"], "companyApplyUrl"
             )
         except KeyError:
-            job_apply_url = ""
+            job_apply_url = None
             LOGGER.warning(
                 "No company apply URL: %s: %s: %s: %s",
                 SITE, job_urn, job_company_name, job_title
@@ -72,9 +70,10 @@ class Search(_BaseSearch):
                 source=JobSource(
                     shortname=SITE_SHORTNAME,
                     site=SITE,
-                    url="",
+                    url=None,
                     urn=job_urn
                 )
             )
-        except Exception:
+        except Exception as exc:
+            LOGGER.warning("%s", exc)
             return None

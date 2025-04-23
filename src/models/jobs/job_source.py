@@ -1,3 +1,5 @@
+from typing import Optional
+
 from models.base_model import _BaseModel
 
 
@@ -5,5 +7,5 @@ from models.base_model import _BaseModel
 class JobSource(_BaseModel):
     shortname: str
     site: str
-    url: str
+    url: Optional[str] = None
     urn: str
