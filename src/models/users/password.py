@@ -1,7 +1,7 @@
 from base64 import b64decode, b64encode
 from enum import Enum, StrEnum
 from secrets import compare_digest
-from typing import Annotated, Literal, Optional, Self
+from typing import Annotated, Any, Literal, Optional, Self
 
 from pydantic import BeforeValidator, SerializationInfo, field_serializer
 
@@ -45,7 +45,7 @@ class Password(_BaseModel):
     ]] = PasswordEncoding.HEX
 
     @field_serializer("encoding")
-    def _serialize_enum(self, field_value: Enum, _: SerializationInfo) -> str:
+    def _serialize_enum(self, field_value: Enum, _: SerializationInfo) -> Any:
         return field_value.value
 
     @classmethod
