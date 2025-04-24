@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Annotated, Optional
 
 from pydantic import Field
 
@@ -15,7 +15,7 @@ from .social import SubmitPersonalSocialConfig
 class SubmitPersonalConfig(_BaseModel):
     first_name: str
     last_name: str
-    desired_salary: str = Field(pattern=f"^{patterns.CURRENCY_PATTERN}$")
+    desired_salary: Annotated[str, Field(pattern=f"^{patterns.CURRENCY_PATTERN}$")]
     contact: SubmitPersonalContactConfig
     location: SubmitPersonalLocationConfig
     demographic: SubmitPersonalDemographicConfig

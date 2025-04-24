@@ -25,10 +25,11 @@ class SearchElementAuthConfig(_BaseModel):
         SearchElementAuthScheme,
         BeforeValidator(ensure_enum(SearchElementAuthScheme))
     ]
-    credentials: (
+    credentials: Annotated[
         SearchElementAuthSchemeBasicConfig |
-        SearchElementAuthSchemeOauthConfig
-    ) = Field(exclude=True)
+        SearchElementAuthSchemeOauthConfig,
+        Field(exclude=True)
+    ]
 
     @field_serializer("scheme")
     def _serialize_enum(self, field_value: Enum, _: SerializationInfo) -> Any:

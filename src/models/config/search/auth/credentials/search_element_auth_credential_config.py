@@ -25,7 +25,7 @@ class SearchElementAuthCredentialConfig(_BaseModel):
         SearchElementAuthCredentialValueTypeEnum,
         BeforeValidator(ensure_enum(SearchElementAuthCredentialValueTypeEnum))
     ]] = SearchElementAuthCredentialValueTypeEnum.PLAINTEXT
-    value: str = Field(exclude=True)
+    value: Annotated[str, Field(exclude=True)]
 
     @model_validator(mode="after")
     def load_value(self) -> Self:

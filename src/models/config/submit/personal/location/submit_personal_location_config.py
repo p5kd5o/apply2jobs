@@ -14,9 +14,11 @@ class SubmitPersonalLocationConfig(_BaseModel):
     ]
     city: str
     state: str
-    zip_code: Annotated[str, BeforeValidator(str)] = Field(
-        pattern=r"^([0-9]+[0-9-]?[0-9]+)+$"
-    )
+    zip_code: Annotated[
+        str,
+        BeforeValidator(str),
+        Field(pattern=r"^([0-9]+[0-9-]?[0-9]+)+$")
+    ]
     country: str
 
     # pylint: disable=too-many-arguments
