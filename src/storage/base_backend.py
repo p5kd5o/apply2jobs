@@ -2,6 +2,7 @@ import abc
 from typing import Iterable
 
 from models.base_model import _BaseModel
+from utils.models import ensure_enum
 from utils.strcase import CaseEnum, CaseType
 from utils.types import _Id
 from .results import (
@@ -15,7 +16,9 @@ class _BaseBackend(abc.ABC):
 
     @abc.abstractmethod
     def __init__(
-        self, connection_string: str, table_case: CaseType | str = None
+        self,
+        connection_string: str,
+        table_case: CaseType | str = None
     ):
         super().__init__()
         if table_case is not None:
@@ -26,18 +29,8 @@ class _BaseBackend(abc.ABC):
         return self.__table_case
 
     @table_case.setter
-    def table_case(self, value: CaseType | str) -> CaseType:
-        if isinstance(value, CaseType):
-            self.__table_case = value.value
-        elif value in CaseEnum:
-            self.__table_case = value
-        else:
-            raise ValueError(
-                f"got {value}, expected one of "
-                f"{{"
-                f"{','.join(e.value for e in CaseEnum.__members__.values())}"
-                f"}}"
-            )
+    def table_case(self, value: CaseType | str) -> None:
+        self.__table_case = ensure_enum(CaseEnum)(value).value
 
     @abc.abstractmethod
     def create(self, value: _BaseModel) -> CreateOneResult:
