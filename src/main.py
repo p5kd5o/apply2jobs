@@ -24,14 +24,34 @@ MISTRAL_API_KEY = os.getenv(
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config",
         "-c",
+        "--config",
         type=lambda x: pathlib.Path(x).expanduser(),
         default=os.getenv(
             "APPLY2JOBS_CONFIG",
             "config.yaml"
         ),
         help="Config file"
+    )
+    parser.add_argument(
+        "-s",
+        "--storage-backend",
+        choices=storage.StorageBackendEnum,
+        type=storage.StorageBackendEnum,
+        default=os.getenv(
+            "APPLY2JOBS_STORAGE_BACKEND",
+            storage.StorageBackendEnum.FILESYSTEM.value
+        ),
+        help="Storage backend"
+    )
+    parser.add_argument(
+        "-l",
+        "--storage-uri",
+        default=os.getenv(
+            "APPLY2JOBS_STORAGE_URI",
+            (pathlib.Path.cwd() / "apply2jobs.data").as_uri()
+        ),
+        help="Storage connection URI"
     )
     parser.add_argument(
         "--resume-pdf",
@@ -50,26 +70,6 @@ def parse_args():
             "coverletters/"
         ),
         help="Coverletter directory"
-    )
-    parser.add_argument(
-        "--storage-backend",
-        "-s",
-        choices=storage.StorageBackendEnum,
-        type=storage.StorageBackendEnum,
-        default=os.getenv(
-            "APPLY2JOBS_STORAGE_BACKEND",
-            storage.StorageBackendEnum.FILESYSTEM.value
-        ),
-        help="Storage backend"
-    )
-    parser.add_argument(
-        "--storage-uri",
-        "-l",
-        default=os.getenv(
-            "APPLY2JOBS_STORAGE_URI",
-            (pathlib.Path.cwd() / "apply2jobs.data").as_uri()
-        ),
-        help="Storage connection URI"
     )
     return parser.parse_args()
 
