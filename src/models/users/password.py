@@ -50,8 +50,9 @@ class Password(_BaseModel):
 
     @classmethod
     def from_password(
-        cls, password: str | bytes,
-        encoding: PasswordEncodingType = PasswordEncoding.HEX.value
+        cls,
+        password: str | bytes,
+        encoding: PasswordEncodingType | str = PasswordEncoding.HEX
     ) -> Self:
         encoding = ensure_enum(PasswordEncoding)(encoding)
         encode = ENCODERS[encoding.value]
