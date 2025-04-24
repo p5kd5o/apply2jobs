@@ -19,7 +19,7 @@ class PasswordEncoding(StrEnum):
 
 PasswordEncodingType = Literal[
     PasswordEncoding.HEX,
-    PasswordEncoding.BASE64
+    PasswordEncoding.BASE64,
 ]
 ENCODERS = {
     PasswordEncoding.HEX.value:
@@ -51,7 +51,7 @@ class Password(_BaseModel):
     @classmethod
     def from_password(
         cls, password: str | bytes,
-        encoding: PasswordEncoding | str = PasswordEncoding.HEX.value
+        encoding: PasswordEncodingType = PasswordEncoding.HEX.value
     ) -> Self:
         encoding = ensure_enum(PasswordEncoding)(encoding)
         encode = ENCODERS[encoding.value]
