@@ -33,7 +33,7 @@ For an example configuration file, see [`etc/config.example.yaml`](./etc/config.
 | ------------------------------ | ----------------------- | ------------------------------- |
 | `APPLY2JOBS_CONFIG`            |  Config file            | `etc/config.yaml`               |
 | `APPLY2JOBS_STORAGE_BACKEND`   |  Storage backend        | `filesystem`                    |
-| `APPLY2JOBS_STORAGE_URI`       |  Storage connection URI | `file://${PWD}/apply2jobs.data` |
+| `APPLY2JOBS_STORAGE_URI`       |  Storage connection URI | `file:///data/apply2jobs`       |
 | `APPLY2JOBS_RESUME_PDF`        |  Resume PDF             | `path/to/resume.pdf`            |
 | `APPLY2JOBS_COVER_LETTERS_DIR` |  Coverletter directory  | `path/to/cover-letters/`        |
 | `MISTRAL_API_KEY`              | Mistral.ai API Key      | `XXXX.YYYY.ZZZZ`                |
