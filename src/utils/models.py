@@ -1,8 +1,9 @@
 from enum import Enum
+from typing import Any, Callable
 
 
-def ensure_enum(enum_type: Enum):
-    def func(value: str) -> Enum:
+def ensure_enum[T: Enum](enum_type: type[T]) -> Callable[[Any], T]:
+    def func(value: Any) -> T:
         if isinstance(value, enum_type):
             return value
         if value in enum_type:
