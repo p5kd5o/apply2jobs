@@ -27,7 +27,7 @@ def hash_password(password: str | bytes) -> PasswordHash[bytes, bytes]:
 
 
 def verify_password(
-    to_check: str | bytes, password_hash: PasswordHash
+    to_check: str | bytes, password_hash: PasswordHash[bytes, bytes]
 ) -> bool:
     if isinstance(to_check, bytes):
         to_check_b = to_check
