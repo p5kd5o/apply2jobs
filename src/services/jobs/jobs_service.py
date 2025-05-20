@@ -1,7 +1,7 @@
 from logging import getLogger
-from typing import Sequence
+from typing import Iterator
 
-import models
+from models import Job
 
 from services.base_service import _BaseService
 
@@ -10,5 +10,5 @@ LOGGER = getLogger(__name__)
 
 class JobsService(_BaseService):
 
-    def get_all(self) -> Sequence[models.Job]:
-        return self.backend.find(models.Job, {})
+    def find_jobs(self, **constraints) -> Iterator[Job]:
+        return self.backend.find(Job, constraints)

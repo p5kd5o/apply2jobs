@@ -5,7 +5,7 @@ from typing import Annotated, Literal, Optional, Self
 from pydantic import BeforeValidator, Field, model_validator
 
 from models.base_model import _BaseModel
-from utils.models import ensure_enum
+from utils.enums import ensure_enum
 
 
 class SearchElementAuthCredentialValueTypeEnum(StrEnum):

@@ -17,3 +17,4 @@ from .config import (
     SubmitPersonalLocationConfig,
     SubmitPersonalSocialConfig,
 )
+from .forms import Form, Field

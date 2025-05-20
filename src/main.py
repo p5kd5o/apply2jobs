@@ -1,7 +1,11 @@
 import argparse
 import logging
+import logging.handlers
 import os
 import pathlib
+import signal
+import sys
+import typing
 import urllib.parse
 
 import mistralai
@@ -11,14 +15,46 @@ import services
 import sites
 import storage
 import utils.config
+import utils.logging
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "WARNING").upper()
+LOG_FMT = "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
 
 MISTRAL_MODEL = "mistral-large-latest"
 MISTRAL_API_KEY = os.getenv(
     "MISTRAL_API_KEY",
     ""
 )
+
+
+def sigint_handler(_, __):
+    print()
+    logging.info("received SIGINT - Exiting...")
+    sys.exit(128 + signal.SIGINT)
+
+
+def configure_logging(
+    level: int | str | None = "INFO",
+    fmt: str | None = None,
+    datefmt: str | None = None,
+    style: str = "%",
+    *,
+    defaults: typing.Mapping[str, typing.Any] | None = None
+) -> None:
+    logger = logging.getLogger()
+    handler = logging.StreamHandler()
+    if handler.stream.isatty():
+        formatter = utils.logging.ColorFormatter(
+            fmt, datefmt, style, defaults=defaults
+        )
+    else:
+        formatter = logging.Formatter(
+            fmt, datefmt, style, defaults=defaults
+        )
+    handler.setFormatter(formatter)
+    handler.setLevel(level)
+    logger.addHandler(handler)
+    logger.setLevel(level)
 
 
 def parse_args():
@@ -75,7 +111,9 @@ def parse_args():
 
 
 def main():
-    logging.basicConfig(level=getattr(logging, LOG_LEVEL))
+    signal.signal(signal.SIGINT, sigint_handler)
+
+    configure_logging(level=LOG_LEVEL, fmt=LOG_FMT)
 
     args = parse_args()
 
@@ -94,18 +132,25 @@ def main():
 
     ingest_service = services.IngestService(
         storage_backend,
-        main_config.search.sites
+        *main_config.search.sites
     )
-    ingest_results = ingest_service.ingest_all(
-        main_config.search.sites
+    ingest_ids = ingest_service.ingest_many(
+        *main_config.search.sites
     )
+    logging.debug("ingest IDs: %s", ingest_ids)
 
     jobs_service = services.JobsService(
         storage_backend
     )
-    jobs_results = jobs_service.get_all()
+    jobs = jobs_service.find_jobs()
 
-    for job in jobs_results:
+    forms_service = services.FormsService(
+        storage_backend
+    )
+    form_ids = forms_service.extract_many(*jobs)
+    logging.debug("form IDs: %s", form_ids)
+
+    for job in jobs:
         try:
             hostname = urllib.parse.urlparse(job.apply_url).hostname
         except Exception as exc:
@@ -113,9 +158,7 @@ def main():
             continue
 
         try:
-            submitter_type: type[sites._BaseSubmit] = (
-                sites.SUBMIT_SUPPORTED[hostname]
-            )
+            submitter_type = sites.SUBMIT_SUPPORTED[hostname]
         except KeyError:
             logging.warning(
                 "no ``submit'' support for site: %s",

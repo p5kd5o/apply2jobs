@@ -2,11 +2,11 @@ from typing import Self, Mapping
 
 from pydantic import BaseModel
 
-from utils.types.id import _Id
+from utils.types import _Id
 
 
 # pylint: disable=too-few-public-methods
-class _BaseModel(BaseModel, extra="forbid"):
+class _BaseModel(BaseModel, extra="allow"):
     _id: _Id
 
     def __init__(self, *args, _id: _Id = None, **kwgs):

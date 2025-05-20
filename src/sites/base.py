@@ -5,7 +5,7 @@ from typing import Any, Callable, Iterable
 from mistralai import Mistral
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from models import Job, SubmitPersonalConfig
+from models import Job, SubmitPersonalConfig, Form
 
 
 # pylint: disable=too-few-public-methods
@@ -52,6 +52,17 @@ class _BaseSubmit(abc.ABC):
         resume_path: str | pathlib.Path,
         cover_letter_dir: str | pathlib.Path
     ) -> dict[str, list[Exception | None]]:
+        pass
+
+    def __call__(self, *args, **kwgs):
+        return self.main(*args, **kwgs)
+
+
+# pylint: disable=too-few-public-methods
+class _BaseExtract(abc.ABC):
+
+    @abc.abstractmethod
+    def main(self, job: Job) -> Form:
         pass
 
     def __call__(self, *args, **kwgs):

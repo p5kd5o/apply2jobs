@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Iterator
 
 from bson.objectid import ObjectId
 from pymongo import MongoClient
@@ -53,11 +53,11 @@ class MongodbBackend(_BaseBackend):
 
     def find(
         self, data_type: type, constraints: dict[str, object]
-    ) -> Sequence[_BaseModel]:
-        return map(
+    ) -> Iterator[_BaseModel]:
+        return iter(map(
             data_type.from_dict,
             self.collection(data_type).find(constraints)
-        )
+        ))
 
     def update(
         self, _id: ObjectId, value: _BaseModel, upsert: bool = False

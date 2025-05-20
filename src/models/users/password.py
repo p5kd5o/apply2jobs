@@ -5,7 +5,7 @@ from typing import Annotated, Any, Literal, Optional, Self
 
 from pydantic import BeforeValidator, SerializationInfo, field_serializer
 
-from utils.models import ensure_enum
+from utils.enums import ensure_enum
 from utils.passwords import PasswordHash, hash_password, verify_password
 
 from models.base_model import _BaseModel

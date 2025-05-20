@@ -2,7 +2,8 @@ import json
 import pathlib
 from urllib.parse import unquote, urlparse
 from uuid import UUID, uuid4
-from typing import Iterable
+from typing import Iterator
+
 
 from models.base_model import _BaseModel
 from utils.strcase import CasedStr, CaseType
@@ -77,7 +78,7 @@ class FilesystemBackend(_BaseBackend):
 
     def find(
         self, data_type: type, constraints: dict[str, object]
-    ) -> Iterable[_BaseModel]:
+    ) -> Iterator[_BaseModel]:
         filepath = self.filepath(data_type)
         try:
             filedata = json.loads(filepath.read_text())
@@ -87,7 +88,7 @@ class FilesystemBackend(_BaseBackend):
         for value in filedata:
             if constraints == filter_subset(value, constraints.keys()):
                 matches.append(value)
-        return map(data_type.from_dict, matches)
+        return iter(map(data_type.from_dict, matches))
 
     def update(
         self, _id: UUID, value: _BaseModel, upsert: bool = False
@@ -97,11 +98,11 @@ class FilesystemBackend(_BaseBackend):
             filedata = json.loads(filepath.read_text())
         except FileNotFoundError:
             filedata = []
-        target = str(_id)
         index = 0
+        target = str(_id)
         while index < len(filedata):
             if filedata[index].get("_id") == target:
-                new_data = {**value.model_dump(mode="json"), "_id": str(_id)}
+                new_data = {**value.model_dump(mode="json"), "_id": target}
                 filedata[index] = new_data
                 filepath.write_text(json.dumps(filedata))
                 return UpdateResult(

@@ -14,8 +14,8 @@ src/main.py [-h] [--config CONFIG]
 
 ### Options
 
-| Option                    | Arguments                         | Description                     | Default |
-| ------------------------- | --------------------------------- | ------------------------------- | ------- |
+| Option                    | Arguments                         | Description                     | Default                         |
+| ------------------------- | --------------------------------- | ------------------------------- | ------------------------------- |
 | `-h`, `--help`            |                                   | Show this help message and exit |                                 |
 | `-c`, `--config`          | `CONFIG`                          | Config file                     | `config.yaml`                   |
 | `-s`, `--storage-backend` | `{filesystem,mongodb,postgresql}` | Storage backend                 | `filesystem`                    |
@@ -29,14 +29,14 @@ For an example configuration file, see [`etc/config.example.yaml`](./etc/config.
 
 ### Environment Variables
 
-| Variable                       | Description             | Example                         |
-| ------------------------------ | ----------------------- | ------------------------------- |
-| `APPLY2JOBS_CONFIG`            |  Config file            | `etc/config.yaml`               |
-| `APPLY2JOBS_STORAGE_BACKEND`   |  Storage backend        | `filesystem`                    |
-| `APPLY2JOBS_STORAGE_URI`       |  Storage connection URI | `file:///data/apply2jobs`       |
-| `APPLY2JOBS_RESUME_PDF`        |  Resume PDF             | `path/to/resume.pdf`            |
-| `APPLY2JOBS_COVER_LETTERS_DIR` |  Coverletter directory  | `path/to/cover-letters/`        |
-| `MISTRAL_API_KEY`              | Mistral.ai API Key      | `XXXX.YYYY.ZZZZ`                |
+| Variable                       | Description            | Example                         |
+| ------------------------------ | ---------------------- | ------------------------------- |
+| `APPLY2JOBS_CONFIG`            | Config file            | `etc/config.yaml`               |
+| `APPLY2JOBS_STORAGE_BACKEND`   | Storage backend        | `filesystem`                    |
+| `APPLY2JOBS_STORAGE_URI`       | Storage connection URI | `file:///data/apply2jobs`       |
+| `APPLY2JOBS_RESUME_PDF`        | Resume PDF             | `path/to/resume.pdf`            |
+| `APPLY2JOBS_COVER_LETTERS_DIR` | Coverletter directory  | `path/to/cover-letters/`        |
+| `MISTRAL_API_KEY`              | Mistral.ai API Key     | `XXXX.YYYY.ZZZZ`                |
 
 ## Authors
 

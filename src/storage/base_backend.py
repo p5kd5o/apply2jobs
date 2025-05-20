@@ -1,8 +1,8 @@
 import abc
-from typing import Iterable
+from typing import Iterator
 
 from models.base_model import _BaseModel
-from utils.models import ensure_enum
+from utils.enums import ensure_enum
 from utils.strcase import CaseEnum, CaseType
 from utils.types import _Id
 from .results import (
@@ -49,7 +49,7 @@ class _BaseBackend(abc.ABC):
     @abc.abstractmethod
     def find(
         self, data_type: type, constraints: dict[str, object]
-    ) -> Iterable[_BaseModel]:
+    ) -> Iterator[_BaseModel]:
         pass
 
     @abc.abstractmethod

@@ -1,28 +1,30 @@
 from importlib import import_module
-from logging import getLogger
 from pkgutil import iter_modules
 
-from . base import _BaseSearch, _BaseSubmit
+from . base import _BaseSearch, _BaseSubmit, _BaseExtract
 
-LOGGER = getLogger(__name__)
-
-SEARCH_SUPPORTED: dict[str, _BaseSearch] = {}
-SUBMIT_SUPPORTED: dict[str, _BaseSubmit] = {}
 SITE_CLIENT_TYPE: dict[str, type] = {}
 
+SEARCH_SUPPORTED: dict[str, type[_BaseSearch]] = {}
+SUBMIT_SUPPORTED: dict[str, type[_BaseSubmit]] = {}
+EXTRACT_SUPPORTED: dict[str, type[_BaseExtract]] = {}
+
 __SITE_MODULE_CLIENT_TYPE_ATTR__: str = "CLIENT_TYPE"
+
 __SITE_MODULE_SUPPORT_CLASS_NAME_MAPPING__: dict[str, str] = {
     "search": "Search",
     "submit": "Submit",
+    "extract": "Extract",
 }
 __SITE_MODULE_SUPPORT_MAPPING__: dict[str, dict] = {
     "search": SEARCH_SUPPORTED,
     "submit": SUBMIT_SUPPORTED,
+    "extract": EXTRACT_SUPPORTED,
 }
 
 
 def get_package_site(package: str):
-    return ".".join(package.split(".")[-3:][::-1]).replace("_", "-")
+    return ".".join(reversed(package.split(".")[-3:])).replace("_", "-")
 
 
 def load_supported_modules(path, package, parent=None):
@@ -34,11 +36,6 @@ def load_supported_modules(path, package, parent=None):
                 SITE_CLIENT_TYPE[module.SITE] = getattr(
                     module,
                     __SITE_MODULE_CLIENT_TYPE_ATTR__
-                )
-                LOGGER.info(
-                    "Loaded client type for site module: %s: %s",
-                    module.__package__,
-                    SITE_CLIENT_TYPE[module.SITE]
                 )
             load_supported_modules(
                 module.__path__, module.__package__, parent=module
@@ -53,16 +50,6 @@ def load_supported_modules(path, package, parent=None):
                         module,
                         __SITE_MODULE_SUPPORT_CLASS_NAME_MAPPING__[module_name]
                     )
-                )
-                LOGGER.info(
-                    "Loaded support module: %s",
-                    module.__package__
-                )
-            else:
-                LOGGER.warning(
-                    "Module missing class ``%s'': %s",
-                    __SITE_MODULE_SUPPORT_CLASS_NAME_MAPPING__[module_name],
-                    module.__package__
                 )
 
 
