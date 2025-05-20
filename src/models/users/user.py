@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 
-from pydantic import AfterValidator, BeforeValidator, EmailStr, StringConstraints
+from pydantic import EmailStr, StringConstraints
 from pydantic_extra_types.phone_numbers import (
     PhoneNumber, PhoneNumberValidator
 )
